@@ -1,1 +1,586 @@
-hgfjk
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الأبطال الرقميين V4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: #020617; 
+            color: white;
+            overflow-x: hidden;
+        }
+        .game-card {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .option-btn {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+        }
+        .correct { background: #059669 !important; border-color: #10b981 !important; animation: pulse-green 0.5s; }
+        .wrong { background: #dc2626 !important; border-color: #ef4444 !important; animation: shake 0.4s; }
+        
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .streak-badge {
+            background: linear-gradient(45deg, #f59e0b, #ef4444);
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .question-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        /* Feedback Message Styles */
+        .feedback-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 1000;
+            padding: 40px 60px;
+            border-radius: 30px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .feedback-correct {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: 3px solid #34d399;
+        }
+        .feedback-wrong {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: 3px solid #fbbf24;
+        }
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            40% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Feedback Message Overlay -->
+    <div id="feedback-overlay" class="feedback-message"></div>
+
+    <div id="game-container" class="w-full max-w-4xl">
+        
+        <!-- شاشة البداية -->
+        <div id="screen-start" class="game-card p-10 text-center relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
+            <div class="mb-6 relative">
+                <span class="text-8xl">🛡️</span>
+                <div class="absolute -bottom-2 -right-2 bg-blue-500 rounded-full p-2 text-2xl">⚡</div>
+            </div>
+            <h1 class="text-5xl font-black mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                تحدي الأبطال الرقميين
+            </h1>
+            <p class="text-slate-400 text-lg mb-2">استعد لرحلة معرفية لتقييم مهاراتك في عصر الذكاء الاصطناعي</p>
+            <p class="text-blue-400 text-sm mb-10">✨ 30 سؤال | 4 مهارات | تقرير شامل</p>
+            
+            <div class="grid md:grid-cols-2 gap-6 text-right mb-10">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-blue-400 mr-2">اسم البطل</label>
+                    <input type="text" id="user-name" placeholder="ادخل اسمك هنا" class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none text-right">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-blue-400 mr-2">رقم المدرسة (1-9) *</label>
+                    <select id="user-school" class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none text-right">
+                        <option value="">اختر رقم المدرسة</option>
+                        <option value="المدرسة 1">المدرسة 1</option>
+                        <option value="المدرسة 2">المدرسة 2</option>
+                        <option value="المدرسة 3">المدرسة 3</option>
+                        <option value="المدرسة 4">المدرسة 4</option>
+                        <option value="المدرسة 5">المدرسة 5</option>
+                        <option value="المدرسة 6">المدرسة 6</option>
+                        <option value="المدرسة 7">المدرسة 7</option>
+                        <option value="المدرسة 8">المدرسة 8</option>
+                        <option value="المدرسة 9">المدرسة 9</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button onclick="startGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xl rounded-2xl shadow-xl shadow-blue-900/20 transition-all active:scale-95">
+                دخول التحدي 🚀
+            </button>
+        </div>
+
+        <!-- شاشة اللعب -->
+        <div id="screen-play" class="hidden">
+            <div class="flex flex-wrap justify-between items-center gap-4 mb-6 px-2">
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-800/80 px-5 py-2 rounded-2xl border border-white/5">
+                        <span class="text-yellow-400 font-black">⭐ <span id="live-score">0</span></span>
+                    </div>
+                    <div id="streak-container" class="hidden">
+                        <div class="streak-badge px-4 py-2 rounded-2xl text-white font-black text-sm">
+                            🔥 <span id="streak-count">0</span> متتالي!
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-red-500/10 px-5 py-2 rounded-2xl border border-red-500/20">
+                    <span class="text-red-400 font-bold">⏱️ <span id="timer">00:00</span></span>
+                </div>
+            </div>
+
+            <div class="w-full bg-slate-800 h-4 rounded-full mb-8 p-1">
+                <div id="progress-bar" class="h-full bg-gradient-to-l from-blue-500 via-cyan-400 to-purple-500 w-0 rounded-full transition-all duration-700"></div>
+            </div>
+
+            <div class="game-card p-8 md:p-12 relative">
+                <div class="flex justify-between items-center mb-6">
+                    <div id="q-category" class="bg-blue-600 text-white text-[11px] px-4 py-1.5 rounded-full font-black tracking-widest">
+                        CATEGORY
+                    </div>
+                    <div class="question-number text-sm">
+                        <span id="current-q">1</span> / <span id="total-q">30</span>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <h2 id="q-text" class="text-2xl md:text-3xl font-bold leading-tight text-right">جاري تجهيز السؤال...</h2>
+                    
+                    <div id="q-image-box" class="hidden w-full h-56 bg-slate-900/50 rounded-3xl flex items-center justify-center border border-white/5 overflow-hidden">
+                        <img id="q-image" src="" alt="رسوم توضيحية" class="max-w-full max-h-full object-contain p-4">
+                    </div>
+
+                    <div id="options-grid" class="grid md:grid-cols-2 gap-4">
+                        <!-- خيارات السؤال -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- شاشة النتائج -->
+        <div id="screen-results" class="hidden game-card p-10 text-center animate-in fade-in zoom-in duration-500">
+            <h2 class="text-4xl font-black mb-4">تقرير البطل الرقمي 🏅</h2>
+            <p class="text-slate-400 mb-10" id="final-status-text">تحليل المهارات بناءً على أدائك في التحدي</p>
+            
+            <div class="grid lg:grid-cols-2 gap-10 items-center mb-10">
+                <div class="bg-slate-900/50 p-6 rounded-3xl border border-white/5">
+                    <canvas id="skillsChart"></canvas>
+                </div>
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-600/10 p-6 rounded-3xl border border-blue-500/20">
+                            <span class="block text-slate-400 text-sm mb-1">النتيجة</span>
+                            <span class="text-4xl font-black text-blue-400" id="final-score">0%</span>
+                        </div>
+                        <div class="bg-purple-600/10 p-6 rounded-3xl border border-purple-500/20">
+                            <span class="block text-slate-400 text-sm mb-1">المستوى</span>
+                            <span class="text-2xl font-black text-purple-400" id="final-level">محلل</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-3xl text-right">
+                        <h4 class="font-bold text-yellow-500 mb-2">📌 توصية الخبراء:</h4>
+                        <p id="recommendation-text" class="text-slate-300 text-sm leading-relaxed"></p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 p-6 rounded-3xl text-right border border-green-500/20">
+                        <h4 class="font-bold text-green-400 mb-2">💪 نقاط القوة:</h4>
+                        <p id="strength-text" class="text-slate-300 text-sm leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="px-10 py-4 bg-slate-700 hover:bg-slate-600 rounded-2xl font-bold transition-all">خوض التحدي مرة أخرى 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzTCbAGg7ZMUnOBDq89KuW_SsKjlx94HHDeTGEzsOu21g1MRJsjiX34RcLUqR8xjgRFg/exec";
+        // ردود فعل أردنية متنوعة
+        const CORRECT_MESSAGES = [
+            "يا سلااام! إجابة صح 🔥",
+            "ماشاء الله عليك! 💪",
+            "يا نجم/نجمة! 🌟",
+            "خيّال! استمر 🚀",
+            "وااااو! قمة 👑",
+            "يا معلم/معلمة! 💯",
+            "روووعة! كمّل 💥",
+            "يا بطل! تمااام ✨",
+            "رهيييب! هيك بدنا 🎯",
+            "يا حبيبي/حبيبتي! صح 💙",
+            "عظيم! فوق الممتاز 🏆",
+            "يا قمر! كمّل ⭐",
+            "تسلم إيدك! 👏",
+            "يا أسطورة! 🦸",
+            "برافو عليك! 🎊"
+        ];
+
+        const WRONG_MESSAGES = [
+            "ولا يهمك، المرة الجاية 💙",
+            "عادي، تعلّمنا من الغلط 🌱",
+            "مش مشكلة، كمّل ✨",
+            "يلا نركز أكتر 💪",
+            "تمام، المهم نتعلم 📚",
+            "ما صار شي، جرّب تاني 🎯",
+            "عادي، باقي كتير أسئلة 🌟",
+            "حاول مرة تانية 💫",
+            "يلا، خلينا نكمل 🚀",
+            "لسا في فرصة، كمّل 💙",
+            "تعلّمنا شي جديد 📖",
+            "ولا يهمك، ركّز بالجاي ⭐"
+        ];
+
+        // Audio Context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSuccessSound() {
+            // نوتات موسيقية صاعدة (Success)
+            const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+            notes.forEach((freq, i) => {
+                setTimeout(() => playBeep(freq, 0.1), i * 80);
+            });
+        }
+
+        function playWrongSound() {
+            // نوتة هابطة (Wrong)
+            const notes = [392.00, 329.63]; // G4, E4
+            notes.forEach((freq, i) => {
+                setTimeout(() => playBeep(freq, 0.15), i * 100);
+            });
+        }
+
+        function playBeep(frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function showFeedback(message, isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            overlay.textContent = message;
+            overlay.className = isCorrect ? 'feedback-message feedback-correct' : 'feedback-message feedback-wrong';
+            overlay.style.animation = 'feedbackPop 1.2s ease-out';
+            
+            setTimeout(() => {
+                overlay.style.animation = '';
+            }, 1200);
+        }
+
+        // 30 سؤال مناسب لطلاب صف 6-8
+        const QUESTIONS = [
+            // ========== MICROSOFT OFFICE (10 أسئلة) ==========
+            { cat: "MICROSOFT SKILLS", q: "في برنامج Word، أي زر تستخدم لجعل النص عريضاً (غامقاً)؟", opts: ["Ctrl+I", "Ctrl+U", "Ctrl+B", "Ctrl+S"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "ما هي الدالة المستخدمة لجمع الأرقام في Excel؟", opts: ["=SUM()", "=ADD()", "=TOTAL()", "=PLUS()"], ans: 0, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي قائمة في Word تسمح لك بإضافة الصور؟", opts: ["ملف", "الصفحة الرئيسية", "إدراج", "عرض"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في PowerPoint، ماذا نسمي كل صفحة في العرض التقديمي؟", opts: ["ورقة", "شريحة", "مستند", "جدول"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي امتداد ملف يخص برنامج Excel؟", opts: [".docx", ".xlsx", ".pptx", ".txt"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في Excel، ماذا نسمي الصندوق الصغير الذي نكتب فيه البيانات؟", opts: ["خلية", "صف", "عمود", "جدول"], ans: 0, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "لحفظ ملف Word، أي اختصار نستخدم؟", opts: ["Ctrl+C", "Ctrl+V", "Ctrl+S", "Ctrl+P"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في PowerPoint، كيف تبدأ عرض الشرائح من البداية؟", opts: ["Ctrl+S", "F5", "Ctrl+P", "Esc"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي أمر يُستخدم للصق النص في Word؟", opts: ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Ctrl+Z"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في Excel، كيف نبدأ كتابة معادلة رياضية؟", opts: ["#", "=", "@", "*"], ans: 1, weights: { ms: 8 } },
+
+            // ========== AI AWARENESS (8 أسئلة) ==========
+            { cat: "AI AWARENESS", q: "ما هو ChatGPT؟", opts: ["لعبة فيديو", "برنامج للدردشة بالذكاء الاصطناعي", "متصفح إنترنت", "تطبيق موسيقى"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "أي من هذه الأدوات يمكنها إنشاء صور من وصف نصي؟", opts: ["Word", "Midjourney", "Excel", "WhatsApp"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "ما معنى كلمة 'AI' في التقنية؟", opts: ["الإنترنت السريع", "الذكاء الاصطناعي", "التطبيقات الذكية", "الألعاب الإلكترونية"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "هل يمكن للذكاء الاصطناعي أن يساعد في كتابة الواجبات المدرسية؟", opts: ["نعم، لكن يجب مراجعتها وفهمها", "لا، مستحيل", "فقط في الرياضيات", "فقط للمعلمين"], ans: 0, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "أي من التطبيقات التالية يستخدم الذكاء الاصطناعي؟", opts: ["آلة حاسبة بسيطة", "Google Translate", "مفكرة النصوص", "ساعة التوقيت"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "للحصول على نتيجة جيدة من ChatGPT، يجب أن يكون السؤال:", opts: ["قصيراً جداً", "واضحاً ومحدداً", "غامضاً", "بلغة غير مفهومة"], ans: 1, weights: { ai: 12 } },
+            { cat: "AI AWARENESS", q: "هل يستطيع الذكاء الاصطناعي فهم الصور؟", opts: ["نعم، بعض الأنظمة تستطيع", "لا، فقط النصوص", "فقط الفيديوهات", "فقط الأصوات"], ans: 0, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "ما هي أفضل طريقة لاستخدام الذكاء الاصطناعي في التعلم؟", opts: ["نسخ الإجابات كاملة", "فهم المعلومات وإعادة صياغتها", "الاعتماد عليه فقط", "تجاهل شرح المعلم"], ans: 1, weights: { ai: 12, lit: 5 } },
+
+            // ========== SECURITY & SAFETY (7 أسئلة) ==========
+            { cat: "SECURITY AWARENESS", q: "وصلتك رسالة تطلب منك إدخال كلمة مرور حسابك في رابط مجهول، ماذا تفعل؟", opts: ["أدخل كلمة المرور فوراً", "أحذف الرسالة ولا أفتح الرابط", "أرسلها لأصدقائي", "أشارك الرابط على فيسبوك"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "ما هو الفيروس في الحاسوب؟", opts: ["برنامج مفيد", "برنامج ضار يؤذي الجهاز", "لعبة إلكترونية", "نوع من الملفات"], ans: 1, weights: { sec: 10 } },
+            { cat: "SECURITY AWARENESS", q: "أي من هذه كلمات المرور الأقوى؟", opts: ["123456", "password", "M@h7eR#2024!", "احمد"], ans: 2, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "هل يجب عليك مشاركة كلمة مرورك مع أفضل صديق لك؟", opts: ["نعم دائماً", "لا، أبداً", "فقط إذا كان موثوقاً", "فقط في المدرسة"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "ما معنى 'Phishing' (التصيد الاحتيالي)؟", opts: ["لعبة صيد", "محاولة سرقة معلوماتك الشخصية", "برنامج حماية", "نوع من الفيروسات"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "إذا ظهرت لك نافذة تقول 'ربحت جائزة!'، ماذا يجب أن تفعل؟", opts: ["أضغط فوراً", "أتجاهلها وأغلقها", "أدخل بياناتي", "أشارك الخبر"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "لماذا يجب تحديث برامج الحاسوب بانتظام؟", opts: ["لتغيير اللون", "لإصلاح الثغرات الأمنية", "لجعله أبطأ", "لحذف الملفات"], ans: 1, weights: { sec: 10 } },
+
+            // ========== DIGITAL LITERACY (5 أسئلة) ==========
+            { cat: "DIGITAL LITERACY", q: "كيف تتأكد من صحة خبر قرأته على الإنترنت؟", opts: ["أصدقه مباشرة", "أبحث عنه في مصادر موثوقة", "أنشره فوراً", "أعتمد على عدد الإعجابات"], ans: 1, weights: { lit: 12 } },
+            { cat: "DIGITAL LITERACY", q: "ما هو الإنترنت؟", opts: ["جهاز حاسوب", "شبكة عالمية تربط الأجهزة", "برنامج واحد", "لعبة إلكترونية"], ans: 1, weights: { lit: 8 } },
+            { cat: "DIGITAL LITERACY", q: "أي من هذه المواقع عادةً موثوق للبحث العلمي؟", opts: ["أي موقع به ألوان جميلة", "المواقع التعليمية الرسمية", "صفحات فيسبوك العشوائية", "مواقع بلا مصدر"], ans: 1, weights: { lit: 12 } },
+            { cat: "DIGITAL LITERACY", q: "ما معنى امتداد الملف '.pdf'؟", opts: ["صورة", "مستند محمي (Portable Document Format)", "فيديو", "أغنية"], ans: 1, weights: { lit: 8, ms: 5 } },
+            { cat: "DIGITAL LITERACY", q: "لماذا يجب علينا عدم نشر معلوماتنا الشخصية على الإنترنت؟", opts: ["لأنه ممل", "لحماية خصوصيتنا وأماننا", "لأنه غير قانوني", "لا يوجد سبب"], ans: 1, weights: { lit: 12, sec: 5 } }
+        ];
+
+        // إضافة عداد للأسئلة الإجمالية
+        document.getElementById('total-q').innerText = QUESTIONS.length;
+
+        let state = {
+            index: 0,
+            score: 0,
+            streak: 0,
+            skills: { ms: 0, ai: 0, sec: 0, lit: 0 },
+            timer: 0,
+            interval: null,
+            userId: null,
+            school: null
+        };
+
+        function startGame() {
+            const school = document.getElementById('user-school').value;
+            if(!school) {
+                gsap.to("#user-school", { x: 10, repeat: 3, yoyo: true, duration: 0.1 });
+                return;
+            }
+            
+            state.userId = document.getElementById('user-name').value || "بطل مجهول";
+            state.school = school;
+            
+            gsap.to("#screen-start", { scale: 0.9, opacity: 0, duration: 0.5, onComplete: () => {
+                document.getElementById('screen-start').classList.add('hidden');
+                document.getElementById('screen-play').classList.remove('hidden');
+                startTimer();
+                renderQuestion();
+            }});
+        }
+
+        function startTimer() {
+            state.interval = setInterval(() => {
+                state.timer++;
+                const m = Math.floor(state.timer / 60).toString().padStart(2, '0');
+                const s = (state.timer % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const q = QUESTIONS[state.index];
+            document.getElementById('q-category').innerText = q.cat;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('current-q').innerText = state.index + 1;
+            
+            const imgBox = document.getElementById('q-image-box');
+            if(q.img) {
+                document.getElementById('q-image').src = q.img;
+                imgBox.classList.remove('hidden');
+            } else {
+                imgBox.classList.add('hidden');
+            }
+
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            q.opts.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn p-6 rounded-2xl text-right text-lg font-bold";
+                btn.innerText = opt;
+                btn.onclick = () => selectAnswer(i, btn);
+                grid.appendChild(btn);
+            });
+
+            const progress = ((state.index + 1) / QUESTIONS.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function selectAnswer(idx, btn) {
+            const q = QUESTIONS[state.index];
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if(idx === q.ans) {
+                btn.classList.add('correct');
+                state.score += 10;
+                state.streak++;
+                Object.keys(q.weights).forEach(k => state.skills[k] += q.weights[k]);
+                
+                // عرض رسالة صحيحة عشوائية
+                const randomMsg = CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
+                showFeedback(randomMsg, true);
+                playSuccessSound();
+                
+                if(state.streak >= 3) {
+                    showStreak();
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+                }
+            } else {
+                btn.classList.add('wrong');
+                allBtns[q.ans].classList.add('correct');
+                state.streak = 0;
+                hideStreak();
+                
+                // عرض رسالة خاطئة عشوائية
+                const randomMsg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
+                showFeedback(randomMsg, false);
+                playWrongSound();
+            }
+
+            document.getElementById('live-score').innerText = state.score;
+
+            setTimeout(() => {
+                state.index++;
+                if(state.index < QUESTIONS.length) {
+                    renderQuestion();
+                } else {
+                    finishGame();
+                }
+            }, 1800);
+        }
+
+        function showStreak() {
+            const container = document.getElementById('streak-container');
+            container.classList.remove('hidden');
+            document.getElementById('streak-count').innerText = state.streak;
+            gsap.fromTo(container, { scale: 0.5 }, { scale: 1, duration: 0.3, ease: "back.out" });
+        }
+
+        function hideStreak() {
+            document.getElementById('streak-container').classList.add('hidden');
+        }
+
+        function finishGame() {
+            clearInterval(state.interval);
+            document.getElementById('screen-play').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('hidden');
+
+            const maxScore = QUESTIONS.length * 10;
+            const finalPercent = Math.round((state.score / maxScore) * 100);
+            document.getElementById('final-score').innerText = `${finalPercent}%`;
+
+            let level = "مبتدئ 🌱";
+            let rec = "لديك معرفة أساسية جيدة! ننصحك بالتدرب أكثر على استخدام برامج الأوفيس والوعي الأمني.";
+            let strength = "تواصل التعلم وستصبح خبيراً قريباً!";
+
+            if(finalPercent >= 90) {
+                level = "خبير تقني 🧙‍♂️";
+                rec = "أداء استثنائي! أنت مستعد لقيادة المشاريع الرقمية في مدرستك وتعليم زملائك.";
+                strength = "مهاراتك في جميع المجالات ممتازة! استمر في تطوير نفسك.";
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if(finalPercent >= 75) {
+                level = "متقدم 🚀";
+                rec = "أداء رائع! لديك أساسيات قوية في معظم المجالات. ركز أكثر على الأمن السيبراني.";
+                strength = "مهاراتك في Microsoft Office والذكاء الاصطناعي قوية جداً!";
+            } else if(finalPercent >= 60) {
+                level = "متوسط 💪";
+                rec = "لديك أساسيات جيدة. ننصحك بالتدرب أكثر على Excel وأدوات الذكاء الاصطناعي.";
+                strength = "فهمك للأمور الأساسية جيد، واصل التحسين!";
+            } else if(finalPercent >= 40) {
+                level = "ناشئ 🌟";
+                rec = "بداية جيدة! خصص وقتاً يومياً للتعلم عن التقنية والأمن الرقمي.";
+                strength = "لديك إمكانيات كبيرة، فقط تحتاج المزيد من الممارسة!";
+            }
+            
+            document.getElementById('final-level').innerText = level;
+            document.getElementById('recommendation-text').innerText = rec;
+            document.getElementById('strength-text').innerText = strength;
+
+            renderFinalChart();
+            sendData(finalPercent, level);
+        }
+
+        function renderFinalChart() {
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['مايكروسوفت أوفيس', 'الذكاء الاصطناعي', 'الأمن السيبراني', 'الثقافة الرقمية'],
+                    datasets: [{
+                        label: 'خريطة المهارات',
+                        data: [state.skills.ms, state.skills.ai, state.skills.sec, state.skills.lit],
+                        backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { 
+                                color: '#94a3b8', 
+                                font: { family: 'Cairo', size: 13, weight: 'bold' } 
+                            },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        async function sendData(score, level) {
+            const payload = {
+                name: state.userId,
+                school: state.school,
+                age: "12-14",
+                gender: "Not Specified",
+                scores: {
+                    microsoft: state.skills.ms,
+                    ai: state.skills.ai,
+                    security: state.skills.sec,
+                    literacy: state.skills.lit
+                },
+                totalScore: score,
+                level: level,
+                timeSpent: state.timer
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log("✅ Data sent successfully");
+            } catch (error) {
+                console.error("❌ Error sending data:", error);
+            }
+        }
+    </script>
+</body>
+</html>
