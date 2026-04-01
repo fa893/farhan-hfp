@@ -169,7 +169,7 @@
                 <div id="progress-bar" class="h-full bg-gradient-to-l from-blue-500 via-cyan-400 to-purple-500 w-0 rounded-full transition-all duration-700"></div>
             </div>
 
-            <div class="game-card p-8 md:p-12 relative">
+            <div class="game-card p-8 md:p-12 relative" id="game-card">
                 <div class="flex justify-between items-center mb-6">
                     <div id="q-category" class="bg-blue-600 text-white text-[11px] px-4 py-1.5 rounded-full font-black tracking-widest">
                         CATEGORY
@@ -373,6 +373,9 @@
                 return;
             }
             
+            // تفعيل الصوت (مطلوب بسبب قيود المتصفح)
+            audioContext.resume().then(() => console.log('Audio ready'));
+
             state.userId = document.getElementById('user-name').value || "بطل مجهول";
             state.school = school;
             
@@ -425,9 +428,14 @@
             const q = QUESTIONS[state.index];
             const allBtns = document.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.disabled = true);
+            
+            // تأثير حركي إضافي: هز البطاقة
+            gsap.to("#game-card", { x: 5, duration: 0.05, yoyo: true, repeat: 3, ease: "power1.inOut" });
 
             if(idx === q.ans) {
                 btn.classList.add('correct');
+                // تأثير تكبير للزر
+                gsap.fromTo(btn, { scale: 1 }, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
                 state.score += 10;
                 state.streak++;
                 Object.keys(q.weights).forEach(k => state.skills[k] += q.weights[k]);
@@ -439,10 +447,13 @@
                 
                 if(state.streak >= 3) {
                     showStreak();
-                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+                    // احتفال أكبر
+                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#3b82f6', '#f59e0b'] });
                 }
             } else {
                 btn.classList.add('wrong');
+                // تأثير هز للزر الخطأ
+                gsap.fromTo(btn, { x: 0 }, { x: 10, duration: 0.05, repeat: 5, yoyo: true });
                 allBtns[q.ans].classList.add('correct');
                 state.streak = 0;
                 hideStreak();
@@ -469,7 +480,7 @@
             const container = document.getElementById('streak-container');
             container.classList.remove('hidden');
             document.getElementById('streak-count').innerText = state.streak;
-            gsap.fromTo(container, { scale: 0.5 }, { scale: 1, duration: 0.3, ease: "back.out" });
+            gsap.fromTo(container, { scale: 0.5, rotation: -10 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out" });
         }
 
         function hideStreak() {
@@ -480,6 +491,8 @@
             clearInterval(state.interval);
             document.getElementById('screen-play').classList.add('hidden');
             document.getElementById('screen-results').classList.remove('hidden');
+            // انيميشن دخول النتائج
+            gsap.fromTo("#screen-results", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out" });
 
             const maxScore = QUESTIONS.length * 10;
             const finalPercent = Math.round((state.score / maxScore) * 100);
@@ -552,31 +565,28 @@
         }
 
         async function sendData(score, level) {
-            const payload = {
-                name: state.userId,
-                school: state.school,
-                age: "12-14",
-                gender: "Not Specified",
-                scores: {
-                    microsoft: state.skills.ms,
-                    ai: state.skills.ai,
-                    security: state.skills.sec,
-                    literacy: state.skills.lit
-                },
-                totalScore: score,
-                level: level,
-                timeSpent: state.timer
-            };
+            // استخدام FormData لضمان وصول البيانات في وضع no-cors
+            const formData = new FormData();
+            formData.append('name', state.userId);
+            formData.append('school', state.school);
+            formData.append('age', '12-14');
+            formData.append('gender', 'Not Specified');
+            formData.append('microsoft', state.skills.ms);
+            formData.append('ai', state.skills.ai);
+            formData.append('security', state.skills.sec);
+            formData.append('literacy', state.skills.lit);
+            formData.append('totalScore', score);
+            formData.append('level', level);
+            formData.append('timeSpent', state.timer);
 
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: formData
                 });
-                console.log("✅ Data sent successfully");
+                console.log("✅ Data sent successfully via FormData");
             } catch (error) {
                 console.error("❌ Error sending data:", error);
             }
