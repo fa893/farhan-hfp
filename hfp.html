@@ -229,7 +229,9 @@
     </div>
 
     <script>
+        // ⚠️ استبدل هذا الرابط بالرابط الصحيح لتطبيق Google Apps Script الخاص بك
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwzTCbAGg7ZMUnOBDq89KuW_SsKjlx94HHDeTGEzsOu21g1MRJsjiX34RcLUqR8xjgRFg/exec";
+        
         // ردود فعل أردنية متنوعة
         const CORRECT_MESSAGES = [
             "يا سلااام! إجابة صح 🔥",
@@ -268,16 +270,14 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSuccessSound() {
-            // نوتات موسيقية صاعدة (Success)
-            const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
+            const notes = [523.25, 659.25, 783.99];
             notes.forEach((freq, i) => {
                 setTimeout(() => playBeep(freq, 0.1), i * 80);
             });
         }
 
         function playWrongSound() {
-            // نوتة هابطة (Wrong)
-            const notes = [392.00, 329.63]; // G4, E4
+            const notes = [392.00, 329.63];
             notes.forEach((freq, i) => {
                 setTimeout(() => playBeep(freq, 0.15), i * 100);
             });
@@ -286,16 +286,12 @@
         function playBeep(frequency, duration) {
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
             oscillator.frequency.value = frequency;
             oscillator.type = 'sine';
-            
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + duration);
         }
@@ -305,7 +301,6 @@
             overlay.textContent = message;
             overlay.className = isCorrect ? 'feedback-message feedback-correct' : 'feedback-message feedback-wrong';
             overlay.style.animation = 'feedbackPop 1.2s ease-out';
-            
             setTimeout(() => {
                 overlay.style.animation = '';
             }, 1200);
@@ -313,7 +308,7 @@
 
         // 30 سؤال مناسب لطلاب صف 6-8
         const QUESTIONS = [
-            // ========== MICROSOFT OFFICE (10 أسئلة) ==========
+            // MICROSOFT OFFICE (10)
             { cat: "MICROSOFT SKILLS", q: "في برنامج Word، أي زر تستخدم لجعل النص عريضاً (غامقاً)؟", opts: ["Ctrl+I", "Ctrl+U", "Ctrl+B", "Ctrl+S"], ans: 2, weights: { ms: 8 } },
             { cat: "MICROSOFT SKILLS", q: "ما هي الدالة المستخدمة لجمع الأرقام في Excel؟", opts: ["=SUM()", "=ADD()", "=TOTAL()", "=PLUS()"], ans: 0, weights: { ms: 8 } },
             { cat: "MICROSOFT SKILLS", q: "أي قائمة في Word تسمح لك بإضافة الصور؟", opts: ["ملف", "الصفحة الرئيسية", "إدراج", "عرض"], ans: 2, weights: { ms: 8 } },
@@ -324,8 +319,7 @@
             { cat: "MICROSOFT SKILLS", q: "في PowerPoint، كيف تبدأ عرض الشرائح من البداية؟", opts: ["Ctrl+S", "F5", "Ctrl+P", "Esc"], ans: 1, weights: { ms: 8 } },
             { cat: "MICROSOFT SKILLS", q: "أي أمر يُستخدم للصق النص في Word؟", opts: ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Ctrl+Z"], ans: 2, weights: { ms: 8 } },
             { cat: "MICROSOFT SKILLS", q: "في Excel، كيف نبدأ كتابة معادلة رياضية؟", opts: ["#", "=", "@", "*"], ans: 1, weights: { ms: 8 } },
-
-            // ========== AI AWARENESS (8 أسئلة) ==========
+            // AI AWARENESS (8)
             { cat: "AI AWARENESS", q: "ما هو ChatGPT؟", opts: ["لعبة فيديو", "برنامج للدردشة بالذكاء الاصطناعي", "متصفح إنترنت", "تطبيق موسيقى"], ans: 1, weights: { ai: 10 } },
             { cat: "AI AWARENESS", q: "أي من هذه الأدوات يمكنها إنشاء صور من وصف نصي؟", opts: ["Word", "Midjourney", "Excel", "WhatsApp"], ans: 1, weights: { ai: 10 } },
             { cat: "AI AWARENESS", q: "ما معنى كلمة 'AI' في التقنية؟", opts: ["الإنترنت السريع", "الذكاء الاصطناعي", "التطبيقات الذكية", "الألعاب الإلكترونية"], ans: 1, weights: { ai: 10 } },
@@ -334,8 +328,7 @@
             { cat: "AI AWARENESS", q: "للحصول على نتيجة جيدة من ChatGPT، يجب أن يكون السؤال:", opts: ["قصيراً جداً", "واضحاً ومحدداً", "غامضاً", "بلغة غير مفهومة"], ans: 1, weights: { ai: 12 } },
             { cat: "AI AWARENESS", q: "هل يستطيع الذكاء الاصطناعي فهم الصور؟", opts: ["نعم، بعض الأنظمة تستطيع", "لا، فقط النصوص", "فقط الفيديوهات", "فقط الأصوات"], ans: 0, weights: { ai: 10 } },
             { cat: "AI AWARENESS", q: "ما هي أفضل طريقة لاستخدام الذكاء الاصطناعي في التعلم؟", opts: ["نسخ الإجابات كاملة", "فهم المعلومات وإعادة صياغتها", "الاعتماد عليه فقط", "تجاهل شرح المعلم"], ans: 1, weights: { ai: 12, lit: 5 } },
-
-            // ========== SECURITY & SAFETY (7 أسئلة) ==========
+            // SECURITY & SAFETY (7)
             { cat: "SECURITY AWARENESS", q: "وصلتك رسالة تطلب منك إدخال كلمة مرور حسابك في رابط مجهول، ماذا تفعل؟", opts: ["أدخل كلمة المرور فوراً", "أحذف الرسالة ولا أفتح الرابط", "أرسلها لأصدقائي", "أشارك الرابط على فيسبوك"], ans: 1, weights: { sec: 12 } },
             { cat: "SECURITY AWARENESS", q: "ما هو الفيروس في الحاسوب؟", opts: ["برنامج مفيد", "برنامج ضار يؤذي الجهاز", "لعبة إلكترونية", "نوع من الملفات"], ans: 1, weights: { sec: 10 } },
             { cat: "SECURITY AWARENESS", q: "أي من هذه كلمات المرور الأقوى؟", opts: ["123456", "password", "M@h7eR#2024!", "احمد"], ans: 2, weights: { sec: 12 } },
@@ -343,8 +336,7 @@
             { cat: "SECURITY AWARENESS", q: "ما معنى 'Phishing' (التصيد الاحتيالي)؟", opts: ["لعبة صيد", "محاولة سرقة معلوماتك الشخصية", "برنامج حماية", "نوع من الفيروسات"], ans: 1, weights: { sec: 12 } },
             { cat: "SECURITY AWARENESS", q: "إذا ظهرت لك نافذة تقول 'ربحت جائزة!'، ماذا يجب أن تفعل؟", opts: ["أضغط فوراً", "أتجاهلها وأغلقها", "أدخل بياناتي", "أشارك الخبر"], ans: 1, weights: { sec: 12 } },
             { cat: "SECURITY AWARENESS", q: "لماذا يجب تحديث برامج الحاسوب بانتظام؟", opts: ["لتغيير اللون", "لإصلاح الثغرات الأمنية", "لجعله أبطأ", "لحذف الملفات"], ans: 1, weights: { sec: 10 } },
-
-            // ========== DIGITAL LITERACY (5 أسئلة) ==========
+            // DIGITAL LITERACY (5)
             { cat: "DIGITAL LITERACY", q: "كيف تتأكد من صحة خبر قرأته على الإنترنت؟", opts: ["أصدقه مباشرة", "أبحث عنه في مصادر موثوقة", "أنشره فوراً", "أعتمد على عدد الإعجابات"], ans: 1, weights: { lit: 12 } },
             { cat: "DIGITAL LITERACY", q: "ما هو الإنترنت؟", opts: ["جهاز حاسوب", "شبكة عالمية تربط الأجهزة", "برنامج واحد", "لعبة إلكترونية"], ans: 1, weights: { lit: 8 } },
             { cat: "DIGITAL LITERACY", q: "أي من هذه المواقع عادةً موثوق للبحث العلمي؟", opts: ["أي موقع به ألوان جميلة", "المواقع التعليمية الرسمية", "صفحات فيسبوك العشوائية", "مواقع بلا مصدر"], ans: 1, weights: { lit: 12 } },
@@ -352,7 +344,6 @@
             { cat: "DIGITAL LITERACY", q: "لماذا يجب علينا عدم نشر معلوماتنا الشخصية على الإنترنت؟", opts: ["لأنه ممل", "لحماية خصوصيتنا وأماننا", "لأنه غير قانوني", "لا يوجد سبب"], ans: 1, weights: { lit: 12, sec: 5 } }
         ];
 
-        // إضافة عداد للأسئلة الإجمالية
         document.getElementById('total-q').innerText = QUESTIONS.length;
 
         let state = {
@@ -373,7 +364,7 @@
                 return;
             }
             
-            // تفعيل الصوت (مطلوب بسبب قيود المتصفح)
+            // تفعيل الصوت بعد تفاعل المستخدم
             audioContext.resume().then(() => console.log('Audio ready'));
 
             state.userId = document.getElementById('user-name').value || "بطل مجهول";
@@ -429,36 +420,31 @@
             const allBtns = document.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.disabled = true);
             
-            // تأثير حركي إضافي: هز البطاقة
+            // تأثير هز البطاقة
             gsap.to("#game-card", { x: 5, duration: 0.05, yoyo: true, repeat: 3, ease: "power1.inOut" });
 
             if(idx === q.ans) {
                 btn.classList.add('correct');
-                // تأثير تكبير للزر
                 gsap.fromTo(btn, { scale: 1 }, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
                 state.score += 10;
                 state.streak++;
                 Object.keys(q.weights).forEach(k => state.skills[k] += q.weights[k]);
                 
-                // عرض رسالة صحيحة عشوائية
                 const randomMsg = CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
                 showFeedback(randomMsg, true);
                 playSuccessSound();
                 
                 if(state.streak >= 3) {
                     showStreak();
-                    // احتفال أكبر
                     confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#3b82f6', '#f59e0b'] });
                 }
             } else {
                 btn.classList.add('wrong');
-                // تأثير هز للزر الخطأ
                 gsap.fromTo(btn, { x: 0 }, { x: 10, duration: 0.05, repeat: 5, yoyo: true });
                 allBtns[q.ans].classList.add('correct');
                 state.streak = 0;
                 hideStreak();
                 
-                // عرض رسالة خاطئة عشوائية
                 const randomMsg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
                 showFeedback(randomMsg, false);
                 playWrongSound();
@@ -491,7 +477,6 @@
             clearInterval(state.interval);
             document.getElementById('screen-play').classList.add('hidden');
             document.getElementById('screen-results').classList.remove('hidden');
-            // انيميشن دخول النتائج
             gsap.fromTo("#screen-results", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out" });
 
             const maxScore = QUESTIONS.length * 10;
@@ -565,28 +550,29 @@
         }
 
         async function sendData(score, level) {
-            // استخدام FormData لضمان وصول البيانات في وضع no-cors
-            const formData = new FormData();
-            formData.append('name', state.userId);
-            formData.append('school', state.school);
-            formData.append('age', '12-14');
-            formData.append('gender', 'Not Specified');
-            formData.append('microsoft', state.skills.ms);
-            formData.append('ai', state.skills.ai);
-            formData.append('security', state.skills.sec);
-            formData.append('literacy', state.skills.lit);
-            formData.append('totalScore', score);
-            formData.append('level', level);
-            formData.append('timeSpent', state.timer);
+            // استخدام application/x-www-form-urlencoded لضمان وصول البيانات مع mode: 'no-cors'
+            const params = new URLSearchParams();
+            params.append('name', state.userId);
+            params.append('school', state.school);
+            params.append('age', '12-14');
+            params.append('gender', 'Not Specified');
+            params.append('microsoft', state.skills.ms);
+            params.append('ai', state.skills.ai);
+            params.append('security', state.skills.sec);
+            params.append('literacy', state.skills.lit);
+            params.append('totalScore', score);
+            params.append('level', level);
+            params.append('timeSpent', state.timer);
 
             try {
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     cache: 'no-cache',
-                    body: formData
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
                 });
-                console.log("✅ Data sent successfully via FormData");
+                console.log("✅ Data sent successfully via URL-encoded POST");
             } catch (error) {
                 console.error("❌ Error sending data:", error);
             }
