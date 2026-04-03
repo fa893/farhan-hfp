@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عنكود - لوحة التحليل العميق</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #0f172a; color: #f1f5f9; }
+        .stat-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border-radius: 28px; border: 1px solid #334155; transition: 0.2s; }
+        .stat-card:hover { border-color: #3b82f6; transform: translateY(-3px); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; text-align: right; border-bottom: 1px solid #334155; }
+        th { background: #1e293b; color: #94a3b8; font-weight: bold; position: sticky; top: 0; }
+        tr:hover { background: #334155; }
+        .filter-bar { background: #1e293b; border-radius: 48px; padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+        button, select, input { background: #0f172a; border: 1px solid #475569; border-radius: 40px; padding: 8px 20px; color: white; transition: 0.2s; }
+        button { background: #3b82f6; border: none; cursor: pointer; }
+        button:hover { background: #2563eb; }
+        .export-btn { background: #10b981; }
+        .export-btn:hover { background: #059669; }
+        .refresh-btn { background: #f59e0b; }
+        .refresh-btn:hover { background: #d97706; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        .chart-container { background: #1e293b; border-radius: 24px; padding: 16px; margin-bottom: 24px; }
+        @media print { body { background: white; color: black; } .no-print { display: none; } .stat-card, .chart-container { border: 1px solid #ccc; } }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- رأس الصفحة -->
+        <div class="flex flex-wrap justify-between items-center mb-8 no-print">
+            <div>
+                <h1 class="text-4xl font-black bg-gradient-to-l from-blue-400 to-purple-400 bg-clip-text text-transparent">📊 عنكود – لوحة التحليل العميق</h1>
+                <p class="text-slate-400 mt-1">تحليل أداء الطلاب في مهارات البصمة الرقمية (مايكروسوفت، الذكاء الاصطناعي، الأمن، الثقافة)</p>
+            </div>
+            <div class="flex gap-3 mt-4 md:mt-0">
+                <button onclick="fetchData()" class="refresh-btn shadow-lg">🔄 تحديث البيانات</button>
+                <button onclick="exportToCSV()" class="export-btn">📎 تصدير CSV</button>
+                <button onclick="window.print()" class="bg-slate-600 hover:bg-slate-500">🖨️ طباعة</button>
+            </div>
+        </div>
+
+        <!-- بطاقات الإحصائيات السريعة -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="stat-card p-5 text-center"><div class="text-4xl font-black text-blue-400" id="totalCount">0</div><div class="text-slate-300 mt-1">إجمالي المشاركين</div></div>
+            <div class="stat-card p-5 text-center"><div class="text-4xl font-black text-green-400" id="avgScore">0%</div><div class="text-slate-300 mt-1">متوسط النتيجة</div></div>
+            <div class="stat-card p-5 text-center"><div class="text-4xl font-black text-yellow-400" id="avgTime">0</div><div class="text-slate-300 mt-1">متوسط الوقت (ثانية)</div></div>
+            <div class="stat-card p-5 text-center"><div class="text-4xl font-black text-purple-400" id="topSchool">-</div><div class="text-slate-300 mt-1">أفضل مدرسة</div></div>
+        </div>
+
+        <!-- فلتر متقدم -->
+        <div class="filter-bar no-print mb-8">
+            <div class="flex gap-3 flex-wrap">
+                <select id="schoolFilter" onchange="filterTable()" class="w-40"><option value="all">جميع المدارس</option></select>
+                <input type="text" id="searchName" placeholder="بحث بالاسم..." onkeyup="filterTable()" class="w-56">
+            </div>
+            <div class="text-sm text-slate-400">🔐 وصول الفريق – بيانات محدثة آنياً</div>
+        </div>
+
+        <!-- صف المخططات الرئيسية -->
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <div class="chart-container"><h3 class="text-xl font-bold mb-3 text-center">📈 متوسط المهارات</h3><canvas id="skillsChart" height="250"></canvas></div>
+            <div class="chart-container"><h3 class="text-xl font-bold mb-3 text-center">🏫 أداء المدارس (أعلى 5)</h3><canvas id="schoolsChart" height="250"></canvas></div>
+            <div class="chart-container"><h3 class="text-xl font-bold mb-3 text-center">🥧 توزيع المستويات</h3><canvas id="levelsChart" height="250"></canvas></div>
+            <div class="chart-container"><h3 class="text-xl font-bold mb-3 text-center">⏱️ الوقت مقابل النتيجة</h3><canvas id="timeScoreChart" height="250"></canvas></div>
+        </div>
+
+        <!-- تحليل المهارات بالتفصيل (جدول) -->
+        <div class="chart-container mb-8">
+            <h3 class="text-xl font-bold mb-4">🔍 تفصيل المهارات لكل مدرسة (متوسط النقاط)</h3>
+            <div class="overflow-x-auto"><table id="schoolSkillsTable" class="min-w-full"><thead><tr><th>المدرسة</th><th>مايكروسوفت</th><th>الذكاء الاصطناعي</th><th>الأمن السيبراني</th><th>الثقافة الرقمية</th><th>المشاركون</th></tr></thead><tbody id="schoolSkillsBody"><tr><td colspan="6" class="text-center">جاري التحميل...</td></tr></tbody></table></div>
+        </div>
+
+        <!-- جدول البيانات التفصيلي -->
+        <div class="chart-container overflow-hidden">
+            <h3 class="text-xl font-bold mb-4">📋 جميع المشاركات</h3>
+            <div class="overflow-x-auto max-h-96">
+                <table id="dataTable">
+                    <thead><tr><th>الاسم</th><th>المدرسة</th><th>النتيجة %</th><th>المستوى</th><th>الوقت (ث)</th><th>MS</th><th>AI</th><th>الأمن</th><th>الثقافة</th></tr></thead>
+                    <tbody id="tableBody"><tr><td colspan="9" class="text-center">يرجى الانتظار...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== إعدادات الربط =====
+        // استخدم رابط تطبيق الويب نفسه الذي يعمل doGet (نفس رابط doPost سابقاً)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHAsFyZzvSH5ybU0A1LrfNI9nfNjPEwcn9qeLO47u9ATpkjRP9WkitINueyIt576fZdg/exec";
+        const ACCESS_KEY = "admin123";  // يجب أن يكون مطابقاً لما في doGet
+        
+        let rawData = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?key=${ACCESS_KEY}`);
+                const result = await response.json();
+                if (result.error) { alert("خطأ في الوصول: " + result.error); return; }
+                rawData = result.data;
+                updateAllAnalytics();
+            } catch (err) { console.error(err); alert("فشل التحميل. تأكد من الرابط والمفتاح."); }
+        }
+
+        function updateAllAnalytics() {
+            if (!rawData.length) { document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="text-center">لا توجد بيانات بعد</td></tr>'; return; }
+            
+            // الإحصائيات العامة
+            const total = rawData.length;
+            let sumScore = 0, sumTime = 0;
+            const schoolScores = {};
+            rawData.forEach(r => {
+                let score = parseFloat(r.totalScore) || 0;
+                let time = parseInt(r.timeSpent) || 0;
+                sumScore += score; sumTime += time;
+                let school = r.school || "غير محدد";
+                if (!schoolScores[school]) schoolScores[school] = { sum: 0, count: 0 };
+                schoolScores[school].sum += score;
+                schoolScores[school].count += 1;
+            });
+            const avgScore = (sumScore / total).toFixed(1);
+            const avgTime = Math.round(sumTime / total);
+            let bestSchool = "—", bestAvg = 0;
+            for (let s in schoolScores) { let avg = schoolScores[s].sum / schoolScores[s].count; if (avg > bestAvg) { bestAvg = avg; bestSchool = s; } }
+            document.getElementById('totalCount').innerText = total;
+            document.getElementById('avgScore').innerText = avgScore + "%";
+            document.getElementById('avgTime').innerText = avgTime;
+            document.getElementById('topSchool').innerText = bestSchool;
+
+            // تحديث قائمة المدارس في الفلتر
+            const schoolsSet = new Set(rawData.map(r => r.school).filter(s => s));
+            const filterSelect = document.getElementById('schoolFilter');
+            filterSelect.innerHTML = '<option value="all">جميع المدارس</option>';
+            [...schoolsSet].sort().forEach(s => { let opt = document.createElement('option'); opt.value = s; opt.textContent = s; filterSelect.appendChild(opt); });
+
+            // رسم المخططات
+            renderSkillsChart();
+            renderSchoolsChart(schoolScores);
+            renderLevelsChart();
+            renderTimeScoreChart();
+            renderSchoolSkillsTable();
+            filterTable(); // يعرض الجدول الرئيسي مع الفلتر
+        }
+
+        function renderSkillsChart() {
+            let sumMS = 0, sumAI = 0, sumSec = 0, sumLit = 0;
+            rawData.forEach(r => { sumMS += parseFloat(r.microsoft) || 0; sumAI += parseFloat(r.ai) || 0; sumSec += parseFloat(r.security) || 0; sumLit += parseFloat(r.literacy) || 0; });
+            const cnt = rawData.length || 1;
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            if (window.skillsChartInstance) window.skillsChartInstance.destroy();
+            window.skillsChartInstance = new Chart(ctx, {
+                type: 'bar', data: { labels: ['مايكروسوفت', 'الذكاء الاصطناعي', 'الأمن السيبراني', 'الثقافة الرقمية'],
+                datasets: [{ label: 'متوسط النقاط', data: [sumMS/cnt, sumAI/cnt, sumSec/cnt, sumLit/cnt], backgroundColor: ['#3b82f6', '#8b5cf6', '#ef4444', '#10b981'], borderRadius: 12 }] },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } } }
+            });
+        }
+
+        function renderSchoolsChart(schoolScores) {
+            const sorted = Object.entries(schoolScores).sort((a,b) => (b[1].sum/b[1].count) - (a[1].sum/a[1].count)).slice(0,5);
+            const labels = sorted.map(s => s[0]);
+            const data = sorted.map(s => (s[1].sum / s[1].count).toFixed(1));
+            const ctx = document.getElementById('schoolsChart').getContext('2d');
+            if (window.schoolsChartInstance) window.schoolsChartInstance.destroy();
+            window.schoolsChartInstance = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'متوسط النتيجة %', data, backgroundColor: '#f59e0b', borderRadius: 10 }] },
+                options: { plugins: { legend: { labels: { color: '#cbd5e1' } } }, scales: { y: { beginAtZero: true, max: 100, ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } } } });
+        }
+
+        function renderLevelsChart() {
+            const levels = { 'مبتدئ':0, 'ناشئ':0, 'متوسط':0, 'متقدم':0, 'خبير تقني':0 };
+            rawData.forEach(r => { let lvl = r.level || ''; if (lvl.includes('مبتدئ')) levels['مبتدئ']++; else if (lvl.includes('ناشئ')) levels['ناشئ']++; else if (lvl.includes('متوسط')) levels['متوسط']++; else if (lvl.includes('متقدم')) levels['متقدم']++; else if (lvl.includes('خبير')) levels['خبير تقني']++; });
+            const ctx = document.getElementById('levelsChart').getContext('2d');
+            if (window.levelsChartInstance) window.levelsChartInstance.destroy();
+            window.levelsChartInstance = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(levels), datasets: [{ data: Object.values(levels), backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'] }] },
+                options: { plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } } });
+        }
+
+        function renderTimeScoreChart() {
+            const points = rawData.map(r => ({ x: parseInt(r.timeSpent) || 0, y: parseFloat(r.totalScore) || 0 }));
+            const ctx = document.getElementById('timeScoreChart').getContext('2d');
+            if (window.timeChartInstance) window.timeChartInstance.destroy();
+            window.timeChartInstance = new Chart(ctx, { type: 'scatter', data: { datasets: [{ label: 'الطلاب', data: points, backgroundColor: '#3b82f6', pointRadius: 5 }] },
+                options: { scales: { x: { title: { display: true, text: 'الوقت (ثانية)', color: 'white' }, ticks: { color: 'white' } }, y: { title: { display: true, text: 'النتيجة %', color: 'white' }, ticks: { color: 'white' } } }, plugins: { tooltip: { callbacks: { label: (ctx) => `النتيجة: ${ctx.raw.y}% - وقت: ${ctx.raw.x} ث` } } } } });
+        }
+
+        function renderSchoolSkillsTable() {
+            const schoolMap = new Map(); // school -> { ms, ai, sec, lit, count }
+            rawData.forEach(r => {
+                let school = r.school || "غير محدد";
+                if (!schoolMap.has(school)) schoolMap.set(school, { ms:0, ai:0, sec:0, lit:0, count:0 });
+                let s = schoolMap.get(school);
+                s.ms += parseFloat(r.microsoft) || 0; s.ai += parseFloat(r.ai) || 0; s.sec += parseFloat(r.security) || 0; s.lit += parseFloat(r.literacy) || 0; s.count++;
+            });
+            let html = '';
+            for (let [school, vals] of schoolMap.entries()) {
+                html += `<tr><td class="font-bold">${school}</td><td>${(vals.ms/vals.count).toFixed(1)}</td><td>${(vals.ai/vals.count).toFixed(1)}</td><td>${(vals.sec/vals.count).toFixed(1)}</td><td>${(vals.lit/vals.count).toFixed(1)}</td><td>${vals.count}</td></tr>`;
+            }
+            document.getElementById('schoolSkillsBody').innerHTML = html || '<tr><td colspan="6">لا توجد بيانات</td></tr>';
+        }
+
+        function filterTable() {
+            const school = document.getElementById('schoolFilter').value;
+            const search = document.getElementById('searchName').value.trim().toLowerCase();
+            let filtered = rawData.filter(r => (school === 'all' || r.school === school) && (search === '' || (r.name && r.name.toLowerCase().includes(search))));
+            const tbody = document.getElementById('tableBody');
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center">لا توجد نتائج مطابقة</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(r => `<tr><td>${r.name || "—"}</td><td>${r.school || "—"}</td><td class="font-bold text-blue-300">${r.totalScore || 0}%</td><td>${r.level || "—"}</td><td>${r.timeSpent || 0}</td><td>${r.microsoft || 0}</td><td>${r.ai || 0}</td><td>${r.security || 0}</td><td>${r.literacy || 0}</td></tr>`).join('');
+        }
+
+        function exportToCSV() {
+            if (!rawData.length) return;
+            const headers = ['الاسم', 'المدرسة', 'العمر', 'الجنس', 'مايكروسوفت', 'الذكاء الاصطناعي', 'الأمن', 'الثقافة', 'النتيجة%', 'المستوى', 'الوقت(ث)'];
+            const rows = rawData.map(r => [r.name, r.school, r.age, r.gender, r.microsoft, r.ai, r.security, r.literacy, r.totalScore, r.level, r.timeSpent]);
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'ankod_analytics.csv'; link.click(); URL.revokeObjectURL(link.href);
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>
