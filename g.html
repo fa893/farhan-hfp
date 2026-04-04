@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عنكود - ANKOD | الرحلة الرقمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A2472;
+            --secondary: #00C2FF;
+            --accent: #FF8C00;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--primary);
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* Roadmap Styling */
+        .roadmap-bg {
+            background: linear-gradient(180deg, #0A2472 0%, #1a3a8a 50%, #00C2FF 100%);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        .zigzag-container {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 100px 20px;
+        }
+
+        .station-node {
+            position: relative;
+            z-index: 10;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 5px solid var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            margin-bottom: 80px;
+        }
+
+        .station-node.locked {
+            background: #4a5568;
+            cursor: not-allowed;
+            filter: grayscale(1);
+            opacity: 0.8;
+        }
+
+        .station-node.current {
+            background: var(--accent);
+            transform: scale(1.15);
+            animation: pulse-ring 2s infinite;
+        }
+
+        .station-node.completed {
+            background: var(--success);
+        }
+
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 140, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
+        }
+
+        .station-label {
+            position: absolute;
+            bottom: -55px;
+            width: 220px;
+            text-align: center;
+            background: white;
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Quiz View */
+        #quizOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .quiz-card {
+            background: white;
+            color: #333;
+            max-width: 650px;
+            margin: 20px auto;
+            border-radius: 25px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .timer-container {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        #timerFill {
+            height: 100%;
+            background: var(--danger);
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 15px;
+            text-align: right;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #f7fafc;
+            border-color: var(--secondary);
+        }
+
+        .correct { background: #d1fae5 !important; border-color: var(--success) !important; }
+        .wrong { background: #fee2e2 !important; border-color: var(--danger) !important; }
+
+        .mascot-img {
+            width: 120px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HUD -->
+    <div class="fixed top-0 inset-x-0 h-20 bg-white/10 backdrop-blur-md border-b border-white/20 z-[500] flex items-center justify-between px-6">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span class="text-blue-900 font-black text-2xl">ع</span>
+            </div>
+            <div>
+                <h1 class="font-black text-xl leading-none">عنكود | ANKOD</h1>
+                <p class="text-[10px] opacity-70">مشروع التخرج - Capstone Project</p>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <div class="text-center">
+                <p class="text-[10px] opacity-60">النقاط - Points</p>
+                <p id="totalScore" class="font-bold text-orange-400 text-xl">0</p>
+            </div>
+            <div class="bg-white/20 px-4 py-1 rounded-xl text-center">
+                <p class="text-[10px] opacity-60">المحطة</p>
+                <p id="stationProgress" class="font-bold">1 / 8</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Area -->
+    <div class="roadmap-bg">
+        <div class="zigzag-container" id="nodesContainer">
+            <!-- Generated by JS -->
+        </div>
+    </div>
+
+    <!-- Quiz Overlay -->
+    <div id="quizOverlay">
+        <div class="quiz-card">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="qTitle" class="font-black text-blue-900 text-xl">المحطة الأولى</h2>
+                <span id="qCounter" class="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold">1 / 30</span>
+            </div>
+
+            <div class="timer-container">
+                <div id="timerFill"></div>
+            </div>
+            <p id="timerText" class="text-center text-xs font-bold text-red-500 mb-4">بقي 60 ثانية</p>
+
+            <div id="quizBody">
+                <p id="questionText" class="text-lg font-bold text-gray-800 mb-6">سؤال الاختبار يظهر هنا...</p>
+                <div id="optionsGrid" class="space-y-3">
+                    <!-- Options -->
+                </div>
+            </div>
+
+            <!-- Feedback Tip -->
+            <div id="tipBox" class="hidden mt-4 p-3 bg-blue-50 border-r-4 border-blue-500 text-sm italic">
+                <span class="font-bold">تلميح عنكود:</span> <span id="tipContent"></span>
+            </div>
+
+            <!-- Results View -->
+            <div id="resultsBody" class="hidden text-center py-10">
+                <div id="resIcon" class="text-6xl mb-4">🎉</div>
+                <h2 id="resTitle" class="text-3xl font-black mb-2">أحسنت!</h2>
+                <p id="resDesc" class="text-gray-600 mb-8">لقد اجتزت الاختبار بنجاح.</p>
+                <button onclick="closeQuiz()" class="bg-blue-900 text-white px-10 py-4 rounded-2xl font-bold w-full">متابعة الرحلة</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure
+        const gameData = [
+            { id: 1, titleAr: "حصن كلمة المرور", titleEn: "Password Fortress", time: 90, icon: "🔐", pass: 21 },
+            { id: 2, titleAr: "فخ الصياد الرقمي", titleEn: "Phishing Hunter", time: 90, icon: "🎣", pass: 21 },
+            { id: 3, titleAr: "هندسة الخداع", titleEn: "Social Engineering", time: 90, icon: "👤", pass: 21 },
+            { id: 4, titleAr: "محرك الذكاء", titleEn: "How AI Works", time: 100, icon: "🤖", pass: 21 },
+            { id: 5, titleAr: "مرآة التزييف", titleEn: "Deepfake Mirror", time: 100, icon: "🎭", pass: 21 },
+            { id: 6, titleAr: "أخلاق الآلة", titleEn: "AI Ethics", time: 80, icon: "⚖️", pass: 21 },
+            { id: 7, titleAr: "حارس القانون", titleEn: "Cyber-Law Guard", time: 120, icon: "⚖️", pass: 21 },
+            { id: 8, titleAr: "خط الأمان", titleEn: "The Safe Line", time: 100, icon: "🛡️", pass: 21 }
+        ];
+
+        // Generator for 30 questions per station (Simulated for brevity, can be expanded)
+        function generateQuestions(stationId) {
+            let qs = [];
+            for(let i=1; i<=30; i++) {
+                qs.push({
+                    q: `سؤال محطة ${stationId} رقم ${i}: هل المعلومات الرقمية آمنة دائماً؟ | Is digital info always safe?`,
+                    options: ["نعم | Yes", "لا | No", "فقط مع عنكود | Only with Ankod", "حسب الموقع | Depends"],
+                    correct: 1,
+                    tip: "الأمن الرقمي ممارسة مستمرة وليس حالة ثابتة."
+                });
+            }
+            return qs;
+        }
+
+        // State Management
+        let state = JSON.parse(localStorage.getItem('ankod_save')) || {
+            completed: [],
+            score: 0
+        };
+
+        let currentQuiz = {
+            station: null,
+            index: 0,
+            correct: 0,
+            timer: null,
+            timeLeft: 0
+        };
+
+        function saveGame() {
+            localStorage.setItem('ankod_save', JSON.stringify(state));
+            updateHUD();
+        }
+
+        function updateHUD() {
+            document.getElementById('totalScore').innerText = state.score;
+            document.getElementById('stationProgress').innerText = `${state.completed.length + 1} / 8`;
+        }
+
+        function renderMap() {
+            const container = document.getElementById('nodesContainer');
+            container.innerHTML = '';
+            
+            gameData.forEach((s, i) => {
+                const node = document.createElement('div');
+                const isCompleted = state.completed.includes(s.id);
+                const isLocked = i > 0 && !state.completed.includes(gameData[i-1].id);
+                const isCurrent = !isCompleted && !isLocked;
+
+                node.className = `station-node ${isLocked ? 'locked' : (isCurrent ? 'current' : 'completed')}`;
+                // Zigzag Math
+                node.style.marginLeft = i % 2 === 0 ? '0' : 'auto';
+                node.style.marginRight = i % 2 === 0 ? 'auto' : '0';
+
+                node.innerHTML = `
+                    <span class="text-4xl">${isLocked ? '🔒' : s.icon}</span>
+                    <div class="station-label">${s.titleAr} | ${s.titleEn}</div>
+                `;
+
+                if (!isLocked) node.onclick = () => startQuiz(s);
+                container.appendChild(node);
+            });
+        }
+
+        function startQuiz(station) {
+            currentQuiz.station = station;
+            currentQuiz.index = 0;
+            currentQuiz.correct = 0;
+            currentQuiz.questions = generateQuestions(station.id);
+            currentQuiz.timeLeft = station.time;
+
+            document.getElementById('quizOverlay').style.display = 'block';
+            document.getElementById('resultsBody').classList.add('hidden');
+            document.getElementById('quizBody').classList.remove('hidden');
+            document.getElementById('qTitle').innerText = station.titleAr;
+            
+            loadQuestion();
+            startTimer();
+        }
+
+        function loadQuestion() {
+            const q = currentQuiz.questions[currentQuiz.index];
+            document.getElementById('qCounter').innerText = `${currentQuiz.index + 1} / 30`;
+            document.getElementById('questionText').innerText = q.q;
+            document.getElementById('tipBox').classList.add('hidden');
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(i);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(i) {
+            const q = currentQuiz.questions[currentQuiz.index];
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach(b => b.disabled = true);
+
+            if (i === q.correct) {
+                btns[i].classList.add('correct');
+                currentQuiz.correct++;
+            } else {
+                btns[i].classList.add('wrong');
+                btns[q.correct].classList.add('correct');
+            }
+
+            // Show Tip
+            document.getElementById('tipContent').innerText = q.tip;
+            document.getElementById('tipBox').classList.remove('hidden');
+
+            setTimeout(() => {
+                currentQuiz.index++;
+                if (currentQuiz.index < 30) loadQuestion();
+                else endQuiz(true);
+            }, 2000);
+        }
+
+        function startTimer() {
+            clearInterval(currentQuiz.timer);
+            const fill = document.getElementById('timerFill');
+            const total = currentQuiz.station.time;
+
+            currentQuiz.timer = setInterval(() => {
+                currentQuiz.timeLeft--;
+                const p = (currentQuiz.timeLeft / total) * 100;
+                fill.style.width = p + '%';
+                document.getElementById('timerText').innerText = `بقي ${currentQuiz.timeLeft} ثانية`;
+
+                if (currentQuiz.timeLeft <= 0) endQuiz(false);
+            }, 1000);
+        }
+
+        function endQuiz(finished) {
+            clearInterval(currentQuiz.timer);
+            document.getElementById('quizBody').classList.add('hidden');
+            document.getElementById('resultsBody').classList.remove('hidden');
+
+            const passed = currentQuiz.correct >= currentQuiz.station.pass && finished;
+            const resTitle = document.getElementById('resTitle');
+            const resDesc = document.getElementById('resDesc');
+            const resIcon = document.getElementById('resIcon');
+
+            if (passed) {
+                resTitle.innerText = "أحسنت يا بطل! !Excellent";
+                resTitle.className = "text-3xl font-black text-green-600 mb-2";
+                resDesc.innerText = `لقد اجتزت ${currentQuiz.station.titleAr} بنجاح بـ ${currentQuiz.correct} إجابة صحيحة.`;
+                resIcon.innerText = "🏆";
+                if (!state.completed.includes(currentQuiz.station.id)) {
+                    state.completed.push(currentQuiz.station.id);
+                    state.score += (currentQuiz.correct * 10);
+                    saveGame();
+                }
+            } else {
+                resTitle.innerText = "حاول مرة أخرى! !Try Again";
+                resTitle.className = "text-3xl font-black text-red-600 mb-2";
+                resDesc.innerText = finished ? "لم تحقق علامة النجاح (70%)" : "انتهى الوقت قبل إنهاء التحدي!";
+                resIcon.innerText = "❌";
+            }
+        }
+
+        function closeQuiz() {
+            document.getElementById('quizOverlay').style.display = 'none';
+            renderMap();
+        }
+
+        window.onload = () => {
+            renderMap();
+            updateHUD();
+        };
+    </script>
+</body>
+</html>
