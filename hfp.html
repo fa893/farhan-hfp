@@ -229,7 +229,7 @@
     </div>
 
     <script>
-        // ⚠️ استبدل هذا الرابط بالرابط الصحيح لتطبيق Google Apps Script الخاص بك
+        // رابط Google Apps Script الموحّد (يجب أن يكون مطابقاً للرابط المستخدم في لوحة البيانات)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcF_GMQM6tGurnXqFW479XESnJxguhpOD3aE0_uEbjBXVWIVWr0ZK8I2hTBFj0-EYwsg/exec";
         
         // ردود فعل أردنية متنوعة
@@ -267,9 +267,18 @@
         ];
 
         // Audio Context for sound effects
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let audioContext = null;
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
 
         function playSuccessSound() {
+            if (!audioContext) return;
             const notes = [523.25, 659.25, 783.99];
             notes.forEach((freq, i) => {
                 setTimeout(() => playBeep(freq, 0.1), i * 80);
@@ -277,6 +286,7 @@
         }
 
         function playWrongSound() {
+            if (!audioContext) return;
             const notes = [392.00, 329.63];
             notes.forEach((freq, i) => {
                 setTimeout(() => playBeep(freq, 0.15), i * 100);
@@ -359,15 +369,22 @@
 
         function startGame() {
             const school = document.getElementById('user-school').value;
+            const userName = document.getElementById('user-name').value.trim();
             if(!school) {
                 gsap.to("#user-school", { x: 10, repeat: 3, yoyo: true, duration: 0.1 });
+                alert("الرجاء اختيار رقم المدرسة");
+                return;
+            }
+            if(!userName) {
+                gsap.to("#user-name", { x: 10, repeat: 3, yoyo: true, duration: 0.1 });
+                alert("الرجاء إدخال اسم البطل");
                 return;
             }
             
             // تفعيل الصوت بعد تفاعل المستخدم
-            audioContext.resume().then(() => console.log('Audio ready'));
-
-            state.userId = document.getElementById('user-name').value || "بطل مجهول";
+            initAudio();
+            
+            state.userId = userName;
             state.school = school;
             
             gsap.to("#screen-start", { scale: 0.9, opacity: 0, duration: 0.5, onComplete: () => {
@@ -436,7 +453,7 @@
                 
                 if(state.streak >= 3) {
                     showStreak();
-                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#3b82f6', '#f59e0b'] });
+                    canvasConfetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#3b82f6', '#f59e0b'] });
                 }
             } else {
                 btn.classList.add('wrong');
@@ -491,7 +508,7 @@
                 level = "خبير تقني 🧙‍♂️";
                 rec = "أداء استثنائي! أنت مستعد لقيادة المشاريع الرقمية في مدرستك وتعليم زملائك.";
                 strength = "مهاراتك في جميع المجالات ممتازة! استمر في تطوير نفسك.";
-                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                canvasConfetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
             } else if(finalPercent >= 75) {
                 level = "متقدم 🚀";
                 rec = "أداء رائع! لديك أساسيات قوية في معظم المجالات. ركز أكثر على الأمن السيبراني.";
@@ -550,7 +567,6 @@
         }
 
         async function sendData(score, level) {
-            // استخدام application/x-www-form-urlencoded لضمان وصول البيانات مع mode: 'no-cors'
             const params = new URLSearchParams();
             params.append('name', state.userId);
             params.append('school', state.school);
@@ -572,9 +588,9 @@
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: params.toString()
                 });
-                console.log("✅ Data sent successfully via URL-encoded POST");
+                console.log("✅ تم إرسال البيانات بنجاح");
             } catch (error) {
-                console.error("❌ Error sending data:", error);
+                console.error("❌ خطأ في إرسال البيانات:", error);
             }
         }
     </script>
