@@ -154,7 +154,7 @@
     
     <a href="hfp.html" class="btn btn-game">فوت جاي على اللعبة 🚀</a>
     
-    <button onclick="checkAccess()" class="btn btn-data">النتايج 📊</button>
+    <button onclick="checkAccess()" class="btn btn-data">فوت هان شوف النتائج 📊</button>
 </div>
 
 <script>
@@ -170,11 +170,11 @@
     };
 
     function checkAccess() {
-        const username = prompt("حط اسم المستدخم يزم علامك:");
+        const username = prompt("حط اسم المستدخم انتبه حدا يشوف:");
         if (!username) return;
 
         if (users[username]) {
-            const password = prompt("حط الرمز الصح يرجل مالناااا:");
+            const password = prompt("حط الرمز الصح  :");
             if (password === users[username]) {
                 window.location.href = "hfpdata.html";
             } else {
