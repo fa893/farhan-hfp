@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة تحدي الأبطال الرقميين</title>
+    <title>دار عنكود التقنية</title>
     <style>
         :root {
             /* الألوان مستوحاة مباشرة من صورة عنكود */
@@ -152,9 +152,9 @@
 
     <h1>يهلي ويرحب بيكم عنكود</h1>
     
-    <a href="hfp.html" class="btn btn-game">دخول اللعبة 🚀</a>
+    <a href="hfp.html" class="btn btn-game">فوت جاي على اللعبة 🚀</a>
     
-    <button onclick="checkAccess()" class="btn btn-data">لوحة البيانات والتحكم 📊</button>
+    <button onclick="checkAccess()" class="btn btn-data">النتايج 📊</button>
 </div>
 
 <script>
@@ -170,18 +170,18 @@
     };
 
     function checkAccess() {
-        const username = prompt("الرجاء إدخال اسم المستخدم:");
+        const username = prompt("حط اسم المستدخم يزم علامك:");
         if (!username) return;
 
         if (users[username]) {
-            const password = prompt("الرجاء إدخال كلمة المرور:");
+            const password = prompt("حط الرمز الصح يرجل مالناااا:");
             if (password === users[username]) {
                 window.location.href = "hfpdata.html";
             } else {
-                alert("كلمة المرور غير صحيحة!");
+                alert("انت زلمة غانم حط الرمز صح بس");
             }
         } else {
-            alert("اسم المستخدم غير موجود!");
+            alert("لا حول ولا قوة الا بالله العلي العظيم حط اسم المستخدم صح يزمممم!");
         }
     }
 </script>
