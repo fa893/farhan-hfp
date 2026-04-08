@@ -29,6 +29,8 @@
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
         .chart-container { background: #1e293b; border-radius: 24px; padding: 16px; margin-bottom: 24px; }
         @media print { body { background: white; color: black; } .no-print { display: none; } .stat-card, .chart-container { border: 1px solid #ccc; } }
+        .loading-spinner { display: inline-block; width: 30px; height: 30px; border: 3px solid rgba(59,130,246,0.3); border-radius: 50%; border-top-color: #3b82f6; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="p-6">
@@ -83,32 +85,42 @@
             <div class="overflow-x-auto max-h-96">
                 <table id="dataTable">
                     <thead><tr><th>الاسم</th><th>المدرسة</th><th>النتيجة %</th><th>المستوى</th><th>الوقت (ث)</th><th>MS</th><th>AI</th><th>الأمن</th><th>الثقافة</th></tr></thead>
-                    <tbody id="tableBody"><tr><td colspan="9" class="text-center">يرجى الانتظار...</td></tr></tbody>
+                    <tbody id="tableBody"><tr><td colspan="9" class="text-center"><div class="loading-spinner mx-auto"></div><br>جاري تحميل البيانات...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 
     <script>
-        // ===== إعدادات الربط =====
-        // استخدم رابط تطبيق الويب نفسه الذي يعمل doGet (نفس رابط doPost سابقاً)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHAsFyZzvSH5ybU0A1LrfNI9nfNjPEwcn9qeLO47u9ATpkjRP9WkitINueyIt576fZdg/exec";
-        const ACCESS_KEY = "admin123";  // يجب أن يكون مطابقاً لما في doGet
+        // رابط Google Apps Script الموحّد (نفس الرابط المستخدم في ملف اللعبة)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcF_GMQM6tGurnXqFW479XESnJxguhpOD3aE0_uEbjBXVWIVWr0ZK8I2hTBFj0-EYwsg/exec";
+        const ACCESS_KEY = "admin123";
         
         let rawData = [];
 
         async function fetchData() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center"><div class="loading-spinner mx-auto"></div><br>جاري تحميل البيانات...</td></tr>';
             try {
                 const response = await fetch(`${SCRIPT_URL}?key=${ACCESS_KEY}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const result = await response.json();
                 if (result.error) { alert("خطأ في الوصول: " + result.error); return; }
-                rawData = result.data;
+                rawData = result.data || [];
                 updateAllAnalytics();
-            } catch (err) { console.error(err); alert("فشل التحميل. تأكد من الرابط والمفتاح."); }
+            } catch (err) { 
+                console.error(err); 
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center text-red-400">❌ فشل التحميل. تأكد من الرابط والمفتاح ومن أن التطبيق منشور.</td></tr>';
+                alert("فشل تحميل البيانات. تحقق من إعدادات Google Apps Script.");
+            }
         }
 
         function updateAllAnalytics() {
-            if (!rawData.length) { document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="text-center">لا توجد بيانات بعد</td></tr>'; return; }
+            if (!rawData.length) { 
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" class="text-center">لا توجد بيانات بعد</td></tr>';
+                document.getElementById('schoolSkillsBody').innerHTML = '<tr><td colspan="6" class="text-center">لا توجد بيانات</td></tr>';
+                return; 
+            }
             
             // الإحصائيات العامة
             const total = rawData.length;
@@ -212,14 +224,15 @@
         }
 
         function exportToCSV() {
-            if (!rawData.length) return;
+            if (!rawData.length) { alert("لا توجد بيانات لتصديرها"); return; }
             const headers = ['الاسم', 'المدرسة', 'العمر', 'الجنس', 'مايكروسوفت', 'الذكاء الاصطناعي', 'الأمن', 'الثقافة', 'النتيجة%', 'المستوى', 'الوقت(ث)'];
             const rows = rawData.map(r => [r.name, r.school, r.age, r.gender, r.microsoft, r.ai, r.security, r.literacy, r.totalScore, r.level, r.timeSpent]);
-            const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+            const csv = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
             const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
             const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'ankod_analytics.csv'; link.click(); URL.revokeObjectURL(link.href);
         }
 
+        // تحميل البيانات عند فتح الصفحة
         fetchData();
     </script>
 </body>
