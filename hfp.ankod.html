@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة تحدي الأبطال الرقميين</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 { margin-bottom: 30px; font-size: 24px; }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 15px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+            text-decoration: none;
+        }
+        .btn-game { background-color: #10b981; color: white; }
+        .btn-data { background-color: #f59e0b; color: white; }
+        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>بوابة التحكم - مشروع عنكود</h1>
+    
+    <a href="hfp.html" class="btn btn-game">دخول اللعبة 🚀</a>
+    
+    <button onclick="checkAccess()" class="btn btn-data">لوحة البيانات والتحكم 📊</button>
+</div>
+
+<script>
+    // قائمة المستخدمين وكلمات المرور التي زودتني بها
+    const users = {
+        "Alryan Alhrezat": "Hfp5",
+        "Bishre Mahasneh": "Hfp5",
+        "Farhan Alkhawaldeh": "Hfp5",
+        "Ishraq Ayasreh": "Hfp5",
+        "Joud Tarawneh": "Hfp5",
+        "Laith AlHawamdeh": "Hfp5",
+        "Rawan Hraishat": "Hfp5",
+        "Yehya Alkurdi": "Hfp5"
+    };
+
+    function checkAccess() {
+        const username = prompt("الرجاء إدخال اسم المستخدم:");
+        if (username === null) return; // إذا ضغط إلغاء
+
+        if (users[username]) {
+            const password = prompt("الرجاء إدخال كلمة المرور:");
+            if (password === users[username]) {
+                // إذا كانت البيانات صحيحة، يتوجه لرابط لوحة البيانات
+                window.location.href = "hfpdata.html";
+            } else {
+                alert("كلمة المرور غير صحيحة!");
+            }
+        } else {
+            alert("اسم المستخدم غير موجود!");
+        }
+    }
+</script>
+
+</body>
+</html>
