@@ -2,184 +2,132 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>تحدي الأبطال الرقميين V5 - النسخة الاحترافية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الأبطال الرقميين V4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: radial-gradient(circle at 10% 20%, #020617, #000000);
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: #020617; 
             color: white;
-            min-height: 100vh;
             overflow-x: hidden;
-            position: relative;
-        }
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0;
-            animation: twinkle 3s infinite alternate;
-        }
-        @keyframes twinkle {
-            0% { opacity: 0; transform: scale(0.5); }
-            100% { opacity: 1; transform: scale(1); }
         }
         .game-card {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 48px;
-            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(59,130,246,0.1);
-            transition: all 0.3s ease;
-        }
-        .game-card:hover {
-            border-color: rgba(59,130,246,0.6);
-            box-shadow: 0 30px 55px -15px rgba(59,130,246,0.3);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         .option-btn {
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255,255,255,0.08);
-            position: relative;
-            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .option-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent);
-            transition: left 0.5s;
-        }
-        .option-btn:hover::before { left: 100%; }
         .option-btn:hover:not(:disabled) {
-            transform: translateY(-6px) scale(1.02);
-            background: rgba(59, 130, 246, 0.25);
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(59, 130, 246, 0.2);
             border-color: #3b82f6;
-            box-shadow: 0 15px 25px -10px rgba(59,130,246,0.5);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
         }
-        .correct {
-            background: linear-gradient(135deg, #059669, #10b981) !important;
-            border-color: #34d399 !important;
-            animation: pulseGreen 0.6s ease-out;
-            box-shadow: 0 0 20px rgba(16,185,129,0.6);
+        .correct { background: #059669 !important; border-color: #10b981 !important; animation: pulse-green 0.5s; }
+        .wrong { background: #dc2626 !important; border-color: #ef4444 !important; animation: shake 0.4s; }
+        
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
-        .wrong {
-            background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
-            border-color: #f87171 !important;
-            animation: shakeGlow 0.5s ease-in-out;
-            box-shadow: 0 0 20px rgba(220,38,38,0.6);
-        }
-        @keyframes pulseGreen {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 #10b981; }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16,185,129,0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,0); }
-        }
-        @keyframes shakeGlow {
-            0%,100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
         .streak-badge {
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            animation: bouncePop 0.8s infinite alternate;
-            box-shadow: 0 0 15px #f59e0b;
+            background: linear-gradient(45deg, #f59e0b, #ef4444);
+            animation: bounce 1s infinite;
         }
-        @keyframes bouncePop {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(-8px) scale(1.05); }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
-        .timer-bar { transition: width 1s linear; }
+        .question-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        
+        /* Feedback Message Styles */
         .feedback-message {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            z-index: 2000;
-            padding: 20px 40px;
-            border-radius: 60px;
-            font-size: 2rem;
+            z-index: 1000;
+            padding: 40px 60px;
+            border-radius: 30px;
+            font-size: 2.5rem;
             font-weight: 900;
             text-align: center;
             opacity: 0;
             pointer-events: none;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(20px);
-            white-space: nowrap;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
-        @media (max-width: 640px) {
-            .feedback-message { font-size: 1.3rem; padding: 12px 24px; white-space: normal; width: 80%; }
+        .feedback-correct {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: 3px solid #34d399;
         }
-        .question-number {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: 800;
+        .feedback-wrong {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: 3px solid #fbbf24;
         }
-        input:focus, select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
-            transform: scale(1.01);
-        }
-        .pulse-animation { animation: pulseRing 1.5s infinite; }
-        @keyframes pulseRing {
-            0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(59,130,246,0); }
-            100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
-        }
-        .shake-screen { animation: shakeScreen 0.2s ease-in-out 0s 2; }
-        @keyframes shakeScreen {
-            0%,100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            40% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
         }
     </style>
 </head>
-<body class="relative flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="stars" id="stars-container"></div>
+    <!-- Feedback Message Overlay -->
     <div id="feedback-overlay" class="feedback-message"></div>
 
-    <div id="game-container" class="w-full max-w-4xl z-10 relative">
+    <div id="game-container" class="w-full max-w-4xl">
+        
         <!-- شاشة البداية -->
-        <div id="screen-start" class="game-card p-8 md:p-12 text-center relative overflow-hidden">
-            <div class="absolute -top-20 -right-20 w-60 h-60 bg-blue-600 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
-            <div class="absolute -bottom-20 -left-20 w-60 h-60 bg-purple-600 rounded-full blur-[100px] opacity-30 animate-pulse"></div>
+        <div id="screen-start" class="game-card p-10 text-center relative overflow-hidden">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
             <div class="mb-6 relative">
-                <span class="text-8xl inline-block animate-bounce">🛡️</span>
-                <div class="absolute -bottom-2 -right-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full p-2 text-2xl shadow-lg">⚡</div>
+                <span class="text-8xl">🛡️</span>
+                <div class="absolute -bottom-2 -right-2 bg-blue-500 rounded-full p-2 text-2xl">⚡</div>
             </div>
-            <h1 class="text-4xl md:text-6xl font-black mb-4 bg-gradient-to-l from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h1 class="text-5xl font-black mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 تحدي الأبطال الرقميين
             </h1>
-            <p class="text-slate-300 text-lg mb-2">✨ استعد لرحلة معرفية لتقييم مهاراتك في عصر الذكاء الاصطناعي ✨</p>
-            <p class="text-blue-300 text-sm mb-10">🎯 30 سؤال | 4 مهارات | تقرير شامل</p>
+            <p class="text-slate-400 text-lg mb-2">استعد لرحلة معرفية لتقييم مهاراتك في عصر الذكاء الاصطناعي</p>
+            <p class="text-blue-400 text-sm mb-10">✨ 30 سؤال | 4 مهارات | تقرير شامل</p>
             
             <div class="grid md:grid-cols-2 gap-6 text-right mb-10">
                 <div class="space-y-2">
-                    <label class="text-sm font-bold text-blue-400 mr-2">🏅 اسم البطل</label>
-                    <input type="text" id="user-name" placeholder="اكتب اسمك هنا" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none transition">
+                    <label class="text-sm font-bold text-blue-400 mr-2">اسم البطل</label>
+                    <input type="text" id="user-name" placeholder="ادخل اسمك هنا" class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none text-right">
                 </div>
                 <div class="space-y-2">
-                    <label class="text-sm font-bold text-blue-400 mr-2">🏫 رقم المدرسة *</label>
-                    <select id="user-school" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none">
+                    <label class="text-sm font-bold text-blue-400 mr-2">رقم المدرسة (1-9) *</label>
+                    <select id="user-school" class="w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 focus:ring-2 focus:ring-blue-500 text-white outline-none text-right">
                         <option value="">اختر رقم المدرسة</option>
                         <option value="المدرسة 1">المدرسة 1</option>
                         <option value="المدرسة 2">المدرسة 2</option>
@@ -194,8 +142,8 @@
                 </div>
             </div>
             
-            <button onclick="startGame()" class="px-12 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xl rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 pulse-animation">
-                🚀 دخول التحدي
+            <button onclick="startGame()" class="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white font-black text-xl rounded-2xl shadow-xl shadow-blue-900/20 transition-all active:scale-95">
+                دخول التحدي 🚀
             </button>
         </div>
 
@@ -203,385 +151,431 @@
         <div id="screen-play" class="hidden">
             <div class="flex flex-wrap justify-between items-center gap-4 mb-6 px-2">
                 <div class="flex items-center gap-3">
-                    <div class="bg-slate-800/80 px-5 py-2 rounded-2xl border border-white/10 backdrop-blur-sm">
+                    <div class="bg-slate-800/80 px-5 py-2 rounded-2xl border border-white/5">
                         <span class="text-yellow-400 font-black">⭐ <span id="live-score">0</span></span>
                     </div>
                     <div id="streak-container" class="hidden">
-                        <div class="streak-badge px-4 py-2 rounded-2xl text-white font-black text-sm flex items-center gap-1">
+                        <div class="streak-badge px-4 py-2 rounded-2xl text-white font-black text-sm">
                             🔥 <span id="streak-count">0</span> متتالي!
                         </div>
                     </div>
                 </div>
-                <div class="bg-red-500/20 px-5 py-2 rounded-2xl border border-red-500/40 backdrop-blur-sm">
+                <div class="bg-red-500/10 px-5 py-2 rounded-2xl border border-red-500/20">
                     <span class="text-red-400 font-bold">⏱️ <span id="timer">00:00</span></span>
                 </div>
             </div>
 
-            <div class="w-full bg-slate-800 h-3 rounded-full mb-3 p-0.5">
-                <div id="progress-bar" class="h-full bg-gradient-to-l from-blue-500 via-cyan-400 to-purple-500 w-0 rounded-full transition-all duration-500"></div>
-            </div>
-            <div class="w-full bg-slate-700 h-1.5 rounded-full mb-6 overflow-hidden">
-                <div id="question-timer-bar" class="h-full bg-gradient-to-r from-green-400 to-yellow-500 w-full rounded-full timer-bar"></div>
+            <div class="w-full bg-slate-800 h-4 rounded-full mb-8 p-1">
+                <div id="progress-bar" class="h-full bg-gradient-to-l from-blue-500 via-cyan-400 to-purple-500 w-0 rounded-full transition-all duration-700"></div>
             </div>
 
-            <div class="game-card p-6 md:p-10 relative" id="game-card">
+            <div class="game-card p-8 md:p-12 relative" id="game-card">
                 <div class="flex justify-between items-center mb-6">
-                    <div id="q-category" class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs px-4 py-1.5 rounded-full font-black tracking-wider shadow-md">
-                        التصنيف
+                    <div id="q-category" class="bg-blue-600 text-white text-[11px] px-4 py-1.5 rounded-full font-black tracking-widest">
+                        CATEGORY
                     </div>
                     <div class="question-number text-sm">
                         <span id="current-q">1</span> / <span id="total-q">30</span>
                     </div>
                 </div>
+
                 <div class="space-y-8">
-                    <h2 id="q-text" class="text-xl md:text-3xl font-extrabold leading-tight text-right">جاري تجهيز السؤال...</h2>
-                    <div id="q-image-box" class="hidden w-full h-56 bg-slate-900/50 rounded-3xl flex items-center justify-center border border-white/10 overflow-hidden">
+                    <h2 id="q-text" class="text-2xl md:text-3xl font-bold leading-tight text-right">جاري تجهيز السؤال...</h2>
+                    
+                    <div id="q-image-box" class="hidden w-full h-56 bg-slate-900/50 rounded-3xl flex items-center justify-center border border-white/5 overflow-hidden">
                         <img id="q-image" src="" alt="رسوم توضيحية" class="max-w-full max-h-full object-contain p-4">
                     </div>
-                    <div id="options-grid" class="grid md:grid-cols-2 gap-4"></div>
+
+                    <div id="options-grid" class="grid md:grid-cols-2 gap-4">
+                        <!-- خيارات السؤال -->
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- شاشة النتائج -->
-        <div id="screen-results" class="hidden game-card p-8 md:p-12 text-center">
-            <div class="relative">
-                <div class="absolute -top-10 left-1/2 transform -translate-x-1/2 text-7xl animate-bounce">🏆</div>
-                <h2 class="text-4xl md:text-5xl font-black mt-8 mb-2 bg-gradient-to-l from-yellow-400 to-orange-500 bg-clip-text text-transparent">تقرير البطل الرقمي</h2>
-                <p class="text-slate-400 mb-10" id="final-status-text">تحليل مهاراتك في عالم التكنولوجيا</p>
-            </div>
+        <div id="screen-results" class="hidden game-card p-10 text-center animate-in fade-in zoom-in duration-500">
+            <h2 class="text-4xl font-black mb-4">تقرير البطل الرقمي 🏅</h2>
+            <p class="text-slate-400 mb-10" id="final-status-text">تحليل المهارات بناءً على أدائك في التحدي</p>
+            
             <div class="grid lg:grid-cols-2 gap-10 items-center mb-10">
-                <div class="bg-slate-900/50 p-6 rounded-3xl border border-white/10">
-                    <canvas id="skillsChart" width="400" height="400"></canvas>
+                <div class="bg-slate-900/50 p-6 rounded-3xl border border-white/5">
+                    <canvas id="skillsChart"></canvas>
                 </div>
                 <div class="space-y-6">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gradient-to-br from-blue-600/20 to-blue-800/20 p-6 rounded-3xl border border-blue-500/30 backdrop-blur-sm">
-                            <span class="block text-slate-300 text-sm mb-1">النتيجة النهائية</span>
-                            <span class="text-5xl font-black text-blue-400" id="final-score">0%</span>
+                        <div class="bg-blue-600/10 p-6 rounded-3xl border border-blue-500/20">
+                            <span class="block text-slate-400 text-sm mb-1">النتيجة</span>
+                            <span class="text-4xl font-black text-blue-400" id="final-score">0%</span>
                         </div>
-                        <div class="bg-gradient-to-br from-purple-600/20 to-purple-800/20 p-6 rounded-3xl border border-purple-500/30 backdrop-blur-sm">
-                            <span class="block text-slate-300 text-sm mb-1">المستوى</span>
+                        <div class="bg-purple-600/10 p-6 rounded-3xl border border-purple-500/20">
+                            <span class="block text-slate-400 text-sm mb-1">المستوى</span>
                             <span class="text-2xl font-black text-purple-400" id="final-level">محلل</span>
                         </div>
                     </div>
-                    <div class="bg-slate-800/70 p-6 rounded-3xl text-right border border-white/10">
-                        <h4 class="font-bold text-yellow-400 mb-2">📌 توصية الخبراء:</h4>
+                    <div class="bg-slate-800 p-6 rounded-3xl text-right">
+                        <h4 class="font-bold text-yellow-500 mb-2">📌 توصية الخبراء:</h4>
                         <p id="recommendation-text" class="text-slate-300 text-sm leading-relaxed"></p>
                     </div>
-                    <div class="bg-gradient-to-br from-green-900/40 to-emerald-900/40 p-6 rounded-3xl text-right border border-green-500/30">
+                    <div class="bg-gradient-to-br from-green-900/30 to-emerald-900/30 p-6 rounded-3xl text-right border border-green-500/20">
                         <h4 class="font-bold text-green-400 mb-2">💪 نقاط القوة:</h4>
                         <p id="strength-text" class="text-slate-300 text-sm leading-relaxed"></p>
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap gap-4 justify-center">
-                <button onclick="location.reload()" class="px-8 py-4 bg-slate-700 hover:bg-slate-600 rounded-2xl font-bold transition-all">🔄 خوض التحدي مرة أخرى</button>
-                <button onclick="shareResult()" class="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-2xl font-bold transition-all">📤 مشاركة النتيجة</button>
-            </div>
+
+            <button onclick="location.reload()" class="px-10 py-4 bg-slate-700 hover:bg-slate-600 rounded-2xl font-bold transition-all">خوض التحدي مرة أخرى 🔄</button>
         </div>
     </div>
 
     <script>
-        // رابط Google Apps Script (استبدل حسب الحاجة)
+        // ===== رابط Google Apps Script الجديد =====
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxcF_GMQM6tGurnXqFW479XESnJxguhpOD3aE0_uEbjBXVWIVWr0ZK8I2hTBFj0-EYwsg/exec";
         
+        // ردود فعل أردنية متنوعة
         const CORRECT_MESSAGES = [
-            "🎉 رائع! إجابة صحيحة!", "💪 ماشاء الله عليك!", "🌟 يا نجم!", "🚀 خيّال! استمر", "👑 قمة في الذكاء!", "🏅 يا بطل!", "✨ تألق مستمر!", "🎯 إصابة مباشرة!", "💎 أنت مذهل!", "🔥 استمر هاي الصح!"
+            "يا سلااام! إجابة صح 🔥",
+            "ماشاء الله عليك! 💪",
+            "يا نجم/نجمة! 🌟",
+            "خيّال! استمر 🚀",
+            "وااااو! قمة 👑",
+            "يا معلم/معلمة! 💯",
+            "روووعة! كمّل 💥",
+            "يا بطل! تمااام ✨",
+            "رهيييب! هيك بدنا 🎯",
+            "يا حبيبي/حبيبتي! صح 💙",
+            "عظيم! فوق الممتاز 🏆",
+            "يا قمر! كمّل ⭐",
+            "تسلم إيدك! 👏",
+            "يا أسطورة! 🦸",
+            "برافو عليك! 🎊"
         ];
+
         const WRONG_MESSAGES = [
-            "🌱 لا تقلق، المرة القادمة أفضل!", "📚 نتعلم من الأخطاء، كمّل!", "💡 تركيز أكثر في السؤال التالي", "🔄 جرّب مرة أخرى", "✨ عادي، كلنا نتعلم", "⭐ راجع المعلومة", "💪 أنت قادر على الأفضل", "🎯 قريب! كمّل"
+            "ولا يهمك، المرة الجاية 💙",
+            "عادي، تعلّمنا من الغلط 🌱",
+            "مش مشكلة، كمّل ✨",
+            "يلا نركز أكتر 💪",
+            "تمام، المهم نتعلم 📚",
+            "ما صار شي، جرّب تاني 🎯",
+            "عادي، باقي كتير أسئلة 🌟",
+            "حاول مرة تانية 💫",
+            "يلا، خلينا نكمل 🚀",
+            "لسا في فرصة، كمّل 💙",
+            "تعلّمنا شي جديد 📖",
+            "ولا يهمك، ركّز بالجاي ⭐"
         ];
 
-        // إنشاء النجوم
-        function createStars() {
-            const container = document.getElementById('stars-container');
-            for (let i = 0; i < 150; i++) {
-                const star = document.createElement('div');
-                star.classList.add('star');
-                const size = Math.random() * 3 + 1;
-                star.style.width = size + 'px';
-                star.style.height = size + 'px';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 5 + 's';
-                star.style.animationDuration = Math.random() * 3 + 2 + 's';
-                container.appendChild(star);
-            }
+        // Audio Context for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSuccessSound() {
+            const notes = [523.25, 659.25, 783.99];
+            notes.forEach((freq, i) => {
+                setTimeout(() => playBeep(freq, 0.1), i * 80);
+            });
         }
-        createStars();
 
-        // المتغيرات العامة
-        let audioContext = null;
-        let questionTimerInterval = null;
-        let timeLeftForQuestion = 30;
-        let isAnswered = false;
-        let isWaitingForNext = false;
-        let state = {
-            index: 0, score: 0, streak: 0,
-            skills: { ms: 0, ai: 0, sec: 0, lit: 0 },
-            timer: 0, interval: null,
-            userId: null, school: null
-        };
+        function playWrongSound() {
+            const notes = [392.00, 329.63];
+            notes.forEach((freq, i) => {
+                setTimeout(() => playBeep(freq, 0.15), i * 100);
+            });
+        }
 
-        // الأسئلة (30 سؤالاً)
+        function playBeep(frequency, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function showFeedback(message, isCorrect) {
+            const overlay = document.getElementById('feedback-overlay');
+            overlay.textContent = message;
+            overlay.className = isCorrect ? 'feedback-message feedback-correct' : 'feedback-message feedback-wrong';
+            overlay.style.animation = 'feedbackPop 1.2s ease-out';
+            setTimeout(() => {
+                overlay.style.animation = '';
+            }, 1200);
+        }
+
+        // 30 سؤال مناسب لطلاب صف 6-8
         const QUESTIONS = [
-            { cat: "مايكروسوفت", q: "في برنامج Word، أي زر تستخدم لجعل النص عريضاً (غامقاً)؟", opts: ["Ctrl+I", "Ctrl+U", "Ctrl+B", "Ctrl+S"], ans: 2, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "ما هي الدالة المستخدمة لجمع الأرقام في Excel؟", opts: ["=SUM()", "=ADD()", "=TOTAL()", "=PLUS()"], ans: 0, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "أي قائمة في Word تسمح لك بإضافة الصور؟", opts: ["ملف", "الصفحة الرئيسية", "إدراج", "عرض"], ans: 2, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "في PowerPoint، ماذا نسمي كل صفحة في العرض التقديمي؟", opts: ["ورقة", "شريحة", "مستند", "جدول"], ans: 1, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "أي امتداد ملف يخص برنامج Excel؟", opts: [".docx", ".xlsx", ".pptx", ".txt"], ans: 1, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "في Excel، ماذا نسمي الصندوق الصغير الذي نكتب فيه البيانات؟", opts: ["خلية", "صف", "عمود", "جدول"], ans: 0, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "لحفظ ملف Word، أي اختصار نستخدم؟", opts: ["Ctrl+C", "Ctrl+V", "Ctrl+S", "Ctrl+P"], ans: 2, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "في PowerPoint، كيف تبدأ عرض الشرائح من البداية؟", opts: ["Ctrl+S", "F5", "Ctrl+P", "Esc"], ans: 1, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "أي أمر يُستخدم للصق النص في Word؟", opts: ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Ctrl+Z"], ans: 2, weights: { ms: 8 } },
-            { cat: "مايكروسوفت", q: "في Excel، كيف نبدأ كتابة معادلة رياضية؟", opts: ["#", "=", "@", "*"], ans: 1, weights: { ms: 8 } },
-            { cat: "الذكاء الاصطناعي", q: "ما هو ChatGPT؟", opts: ["لعبة فيديو", "برنامج دردشة ذكي", "متصفح", "تطبيق موسيقى"], ans: 1, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "أي من هذه الأدوات يمكنها إنشاء صور من وصف نصي؟", opts: ["Word", "Midjourney", "Excel", "WhatsApp"], ans: 1, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "ما معنى AI؟", opts: ["إنترنت سريع", "ذكاء اصطناعي", "تطبيقات ذكية", "ألعاب"], ans: 1, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "هل يمكن للذكاء الاصطناعي أن يساعد في الواجبات المدرسية؟", opts: ["نعم بشرط المراجعة", "لا", "فقط الرياضيات", "فقط للمعلمين"], ans: 0, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "أي تطبيق يستخدم الذكاء الاصطناعي؟", opts: ["آلة حاسبة", "Google Translate", "مفكرة", "ساعة"], ans: 1, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "للحصول على نتيجة جيدة من ChatGPT، يجب أن يكون السؤال:", opts: ["قصيراً", "واضحاً ومحدداً", "غامضاً", "بلغة أجنبية"], ans: 1, weights: { ai: 12 } },
-            { cat: "الذكاء الاصطناعي", q: "هل يستطيع الذكاء الاصطناعي فهم الصور؟", opts: ["نعم بعض الأنظمة", "لا", "فقط الفيديو", "فقط الصوت"], ans: 0, weights: { ai: 10 } },
-            { cat: "الذكاء الاصطناعي", q: "أفضل طريقة لاستخدام الذكاء الاصطناعي في التعلم؟", opts: ["نسخ الإجابات", "فهم وإعادة صياغة", "الاعتماد الكامل", "تجاهل المعلم"], ans: 1, weights: { ai: 12, lit: 5 } },
-            { cat: "الأمن السيبراني", q: "وصلتك رسالة تطلب كلمة مرورك في رابط مجهول؟", opts: ["أدخلها", "أحذف الرسالة", "أرسلها لصديق", "أنشر الرابط"], ans: 1, weights: { sec: 12 } },
-            { cat: "الأمن السيبراني", q: "ما هو الفيروس في الحاسوب؟", opts: ["برنامج مفيد", "برنامج ضار", "لعبة", "ملف نصي"], ans: 1, weights: { sec: 10 } },
-            { cat: "الأمن السيبراني", q: "أي كلمة مرور أقوى؟", opts: ["123456", "password", "M@h7eR#2024!", "احمد"], ans: 2, weights: { sec: 12 } },
-            { cat: "الأمن السيبراني", q: "هل تشارك كلمة المرور مع صديقك؟", opts: ["نعم دائماً", "لا أبداً", "إذا كان موثوقاً", "في المدرسة فقط"], ans: 1, weights: { sec: 12 } },
-            { cat: "الأمن السيبراني", q: "ما معنى التصيد الاحتيالي (Phishing)؟", opts: ["لعبة صيد", "سرقة معلومات", "برنامج حماية", "فيروس"], ans: 1, weights: { sec: 12 } },
-            { cat: "الأمن السيبراني", q: "ظهرت نافذة 'ربحت جائزة'؟", opts: ["أضغط", "أغلقها", "أدخل بياناتي", "أشارك"], ans: 1, weights: { sec: 12 } },
-            { cat: "الأمن السيبراني", q: "لماذا نحدّث البرامج بانتظام؟", opts: ["لتغيير الشكل", "لإصلاح الثغرات", "لجعلها أبطأ", "لحذف الملفات"], ans: 1, weights: { sec: 10 } },
-            { cat: "الثقافة الرقمية", q: "كيف تتأكد من صحة خبر على الإنترنت؟", opts: ["أصدقه", "أبحث في مصادر موثوقة", "أنشره", "أعتمد على الإعجابات"], ans: 1, weights: { lit: 12 } },
-            { cat: "الثقافة الرقمية", q: "ما هو الإنترنت؟", opts: ["جهاز", "شبكة عالمية", "برنامج", "لعبة"], ans: 1, weights: { lit: 8 } },
-            { cat: "الثقافة الرقمية", q: "أي موقع موثوق للبحث العلمي؟", opts: ["أي موقع جميل", "المواقع الرسمية", "فيسبوك", "مدونات عشوائية"], ans: 1, weights: { lit: 12 } },
-            { cat: "الثقافة الرقمية", q: "ما معنى .pdf؟", opts: ["صورة", "مستند محمول", "فيديو", "صوت"], ans: 1, weights: { lit: 8, ms: 5 } },
-            { cat: "الثقافة الرقمية", q: "لماذا لا ننشر معلوماتنا الشخصية؟", opts: ["ممل", "لحماية الخصوصية", "غير قانوني", "لا سبب"], ans: 1, weights: { lit: 12, sec: 5 } }
+            // MICROSOFT OFFICE (10)
+            { cat: "MICROSOFT SKILLS", q: "في برنامج Word، أي زر تستخدم لجعل النص عريضاً (غامقاً)؟", opts: ["Ctrl+I", "Ctrl+U", "Ctrl+B", "Ctrl+S"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "ما هي الدالة المستخدمة لجمع الأرقام في Excel؟", opts: ["=SUM()", "=ADD()", "=TOTAL()", "=PLUS()"], ans: 0, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي قائمة في Word تسمح لك بإضافة الصور؟", opts: ["ملف", "الصفحة الرئيسية", "إدراج", "عرض"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في PowerPoint، ماذا نسمي كل صفحة في العرض التقديمي؟", opts: ["ورقة", "شريحة", "مستند", "جدول"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي امتداد ملف يخص برنامج Excel؟", opts: [".docx", ".xlsx", ".pptx", ".txt"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في Excel، ماذا نسمي الصندوق الصغير الذي نكتب فيه البيانات؟", opts: ["خلية", "صف", "عمود", "جدول"], ans: 0, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "لحفظ ملف Word، أي اختصار نستخدم؟", opts: ["Ctrl+C", "Ctrl+V", "Ctrl+S", "Ctrl+P"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في PowerPoint، كيف تبدأ عرض الشرائح من البداية؟", opts: ["Ctrl+S", "F5", "Ctrl+P", "Esc"], ans: 1, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "أي أمر يُستخدم للصق النص في Word؟", opts: ["Ctrl+X", "Ctrl+C", "Ctrl+V", "Ctrl+Z"], ans: 2, weights: { ms: 8 } },
+            { cat: "MICROSOFT SKILLS", q: "في Excel، كيف نبدأ كتابة معادلة رياضية؟", opts: ["#", "=", "@", "*"], ans: 1, weights: { ms: 8 } },
+            // AI AWARENESS (8)
+            { cat: "AI AWARENESS", q: "ما هو ChatGPT؟", opts: ["لعبة فيديو", "برنامج للدردشة بالذكاء الاصطناعي", "متصفح إنترنت", "تطبيق موسيقى"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "أي من هذه الأدوات يمكنها إنشاء صور من وصف نصي؟", opts: ["Word", "Midjourney", "Excel", "WhatsApp"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "ما معنى كلمة 'AI' في التقنية؟", opts: ["الإنترنت السريع", "الذكاء الاصطناعي", "التطبيقات الذكية", "الألعاب الإلكترونية"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "هل يمكن للذكاء الاصطناعي أن يساعد في كتابة الواجبات المدرسية؟", opts: ["نعم، لكن يجب مراجعتها وفهمها", "لا، مستحيل", "فقط في الرياضيات", "فقط للمعلمين"], ans: 0, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "أي من التطبيقات التالية يستخدم الذكاء الاصطناعي؟", opts: ["آلة حاسبة بسيطة", "Google Translate", "مفكرة النصوص", "ساعة التوقيت"], ans: 1, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "للحصول على نتيجة جيدة من ChatGPT، يجب أن يكون السؤال:", opts: ["قصيراً جداً", "واضحاً ومحدداً", "غامضاً", "بلغة غير مفهومة"], ans: 1, weights: { ai: 12 } },
+            { cat: "AI AWARENESS", q: "هل يستطيع الذكاء الاصطناعي فهم الصور؟", opts: ["نعم، بعض الأنظمة تستطيع", "لا، فقط النصوص", "فقط الفيديوهات", "فقط الأصوات"], ans: 0, weights: { ai: 10 } },
+            { cat: "AI AWARENESS", q: "ما هي أفضل طريقة لاستخدام الذكاء الاصطناعي في التعلم؟", opts: ["نسخ الإجابات كاملة", "فهم المعلومات وإعادة صياغتها", "الاعتماد عليه فقط", "تجاهل شرح المعلم"], ans: 1, weights: { ai: 12, lit: 5 } },
+            // SECURITY & SAFETY (7)
+            { cat: "SECURITY AWARENESS", q: "وصلتك رسالة تطلب منك إدخال كلمة مرور حسابك في رابط مجهول، ماذا تفعل؟", opts: ["أدخل كلمة المرور فوراً", "أحذف الرسالة ولا أفتح الرابط", "أرسلها لأصدقائي", "أشارك الرابط على فيسبوك"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "ما هو الفيروس في الحاسوب؟", opts: ["برنامج مفيد", "برنامج ضار يؤذي الجهاز", "لعبة إلكترونية", "نوع من الملفات"], ans: 1, weights: { sec: 10 } },
+            { cat: "SECURITY AWARENESS", q: "أي من هذه كلمات المرور الأقوى؟", opts: ["123456", "password", "M@h7eR#2024!", "احمد"], ans: 2, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "هل يجب عليك مشاركة كلمة مرورك مع أفضل صديق لك؟", opts: ["نعم دائماً", "لا، أبداً", "فقط إذا كان موثوقاً", "فقط في المدرسة"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "ما معنى 'Phishing' (التصيد الاحتيالي)؟", opts: ["لعبة صيد", "محاولة سرقة معلوماتك الشخصية", "برنامج حماية", "نوع من الفيروسات"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "إذا ظهرت لك نافذة تقول 'ربحت جائزة!'، ماذا يجب أن تفعل؟", opts: ["أضغط فوراً", "أتجاهلها وأغلقها", "أدخل بياناتي", "أشارك الخبر"], ans: 1, weights: { sec: 12 } },
+            { cat: "SECURITY AWARENESS", q: "لماذا يجب تحديث برامج الحاسوب بانتظام؟", opts: ["لتغيير اللون", "لإصلاح الثغرات الأمنية", "لجعله أبطأ", "لحذف الملفات"], ans: 1, weights: { sec: 10 } },
+            // DIGITAL LITERACY (5)
+            { cat: "DIGITAL LITERACY", q: "كيف تتأكد من صحة خبر قرأته على الإنترنت؟", opts: ["أصدقه مباشرة", "أبحث عنه في مصادر موثوقة", "أنشره فوراً", "أعتمد على عدد الإعجابات"], ans: 1, weights: { lit: 12 } },
+            { cat: "DIGITAL LITERACY", q: "ما هو الإنترنت؟", opts: ["جهاز حاسوب", "شبكة عالمية تربط الأجهزة", "برنامج واحد", "لعبة إلكترونية"], ans: 1, weights: { lit: 8 } },
+            { cat: "DIGITAL LITERACY", q: "أي من هذه المواقع عادةً موثوق للبحث العلمي؟", opts: ["أي موقع به ألوان جميلة", "المواقع التعليمية الرسمية", "صفحات فيسبوك العشوائية", "مواقع بلا مصدر"], ans: 1, weights: { lit: 12 } },
+            { cat: "DIGITAL LITERACY", q: "ما معنى امتداد الملف '.pdf'؟", opts: ["صورة", "مستند محمي (Portable Document Format)", "فيديو", "أغنية"], ans: 1, weights: { lit: 8, ms: 5 } },
+            { cat: "DIGITAL LITERACY", q: "لماذا يجب علينا عدم نشر معلوماتنا الشخصية على الإنترنت؟", opts: ["لأنه ممل", "لحماية خصوصيتنا وأماننا", "لأنه غير قانوني", "لا يوجد سبب"], ans: 1, weights: { lit: 12, sec: 5 } }
         ];
 
         document.getElementById('total-q').innerText = QUESTIONS.length;
 
-        // دوال الصوت
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioContext.state === 'suspended') audioContext.resume();
-        }
-        function playBeep(freq, duration, volume = 0.2) {
-            if (!audioContext) return;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-            osc.frequency.value = freq;
-            gain.gain.setValueAtTime(volume, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
-            osc.start();
-            osc.stop(audioContext.currentTime + duration);
-        }
-        function playSuccessSound() {
-            if (!audioContext) return;
-            [523.25, 659.25, 783.99].forEach((f, i) => setTimeout(() => playBeep(f, 0.12, 0.15), i * 90));
-        }
-        function playWrongSound() {
-            if (!audioContext) return;
-            [392, 329.63].forEach((f, i) => setTimeout(() => playBeep(f, 0.2, 0.2), i * 120));
-        }
-        function showFeedback(msg, isCorrect) {
-            const el = document.getElementById('feedback-overlay');
-            el.textContent = msg;
-            el.className = `feedback-message ${isCorrect ? 'bg-gradient-to-r from-green-600 to-emerald-600 border-2 border-green-300' : 'bg-gradient-to-r from-orange-600 to-red-600 border-2 border-orange-300'}`;
-            el.style.animation = 'none';
-            el.offsetHeight;
-            el.style.animation = 'feedbackPop 1.2s ease-out';
-            setTimeout(() => { el.style.animation = ''; }, 1200);
-        }
-        function showStreak() {
-            const cont = document.getElementById('streak-container');
-            cont.classList.remove('hidden');
-            document.getElementById('streak-count').innerText = state.streak;
-            gsap.fromTo(cont, { scale: 0, rotation: -20 }, { scale: 1, rotation: 0, duration: 0.5, ease: "back.out" });
-        }
-        function hideStreak() { document.getElementById('streak-container').classList.add('hidden'); }
+        let state = {
+            index: 0,
+            score: 0,
+            streak: 0,
+            skills: { ms: 0, ai: 0, sec: 0, lit: 0 },
+            timer: 0,
+            interval: null,
+            userId: null,
+            school: null
+        };
 
-        // مؤقت السؤال
-        function resetQuestionTimer() {
-            if (questionTimerInterval) { clearInterval(questionTimerInterval); questionTimerInterval = null; }
-            isAnswered = false;
-            timeLeftForQuestion = 30;
-            const bar = document.getElementById('question-timer-bar');
-            if (bar) { bar.style.width = '100%'; bar.style.backgroundColor = '#4ade80'; }
-            questionTimerInterval = setInterval(() => {
-                if (!isAnswered && timeLeftForQuestion > 0) {
-                    timeLeftForQuestion--;
-                    const percent = (timeLeftForQuestion / 30) * 100;
-                    if (bar) {
-                        bar.style.width = percent + '%';
-                        if (percent < 30) bar.style.backgroundColor = '#ef4444';
-                        else if (percent < 60) bar.style.backgroundColor = '#facc15';
-                        else bar.style.backgroundColor = '#4ade80';
-                    }
-                    if (timeLeftForQuestion === 0) {
-                        clearInterval(questionTimerInterval);
-                        questionTimerInterval = null;
-                        if (!isAnswered && !isWaitingForNext) handleTimeOut();
-                    }
-                } else if (timeLeftForQuestion <= 0) {
-                    clearInterval(questionTimerInterval);
-                    questionTimerInterval = null;
-                }
-            }, 1000);
-        }
-
-        function handleTimeOut() {
-            if (isAnswered || isWaitingForNext) return;
-            isAnswered = true;
-            isWaitingForNext = true;
-            if (questionTimerInterval) { clearInterval(questionTimerInterval); questionTimerInterval = null; }
-            const q = QUESTIONS[state.index];
-            const allBtns = document.querySelectorAll('.option-btn');
-            allBtns.forEach(btn => btn.disabled = true);
-            if (allBtns[q.ans]) allBtns[q.ans].classList.add('correct');
-            showFeedback("⏰ انتهى الوقت! الإجابة الصحيحة موضحة", false);
-            playWrongSound();
-            state.streak = 0;
-            hideStreak();
-            document.body.classList.add('shake-screen');
-            setTimeout(() => document.body.classList.remove('shake-screen'), 500);
-            setTimeout(() => {
-                state.index++;
-                isWaitingForNext = false;
-                if (state.index < QUESTIONS.length) {
-                    resetQuestionTimer();
-                    renderQuestion();
-                } else finishGame();
-            }, 2000);
-        }
-
-        // دوال اللعبة الأساسية
         function startGame() {
             const school = document.getElementById('user-school').value;
-            const userName = document.getElementById('user-name').value.trim();
-            if (!school) { alert("يرجى اختيار رقم المدرسة"); gsap.to("#user-school", { x: 8, repeat: 3, yoyo: true }); return; }
-            if (!userName) { alert("يرجى إدخال اسم البطل"); gsap.to("#user-name", { x: 8, repeat: 3, yoyo: true }); return; }
-            initAudio();
-            state.userId = userName;
+            if(!school) {
+                gsap.to("#user-school", { x: 10, repeat: 3, yoyo: true, duration: 0.1 });
+                return;
+            }
+            
+            // تفعيل الصوت بعد تفاعل المستخدم
+            audioContext.resume().then(() => console.log('Audio ready'));
+
+            state.userId = document.getElementById('user-name').value || "بطل مجهول";
             state.school = school;
-            gsap.to("#screen-start", { scale: 0.9, opacity: 0, duration: 0.4, onComplete: () => {
+            
+            gsap.to("#screen-start", { scale: 0.9, opacity: 0, duration: 0.5, onComplete: () => {
                 document.getElementById('screen-start').classList.add('hidden');
                 document.getElementById('screen-play').classList.remove('hidden');
-                state.interval = setInterval(() => {
-                    state.timer++;
-                    const m = Math.floor(state.timer / 60).toString().padStart(2, '0');
-                    const s = (state.timer % 60).toString().padStart(2, '0');
-                    document.getElementById('timer').innerHTML = `${m}:${s}`;
-                }, 1000);
-                resetQuestionTimer();
+                startTimer();
                 renderQuestion();
-                gsap.fromTo("#game-card", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "back.out" });
             }});
+        }
+
+        function startTimer() {
+            state.interval = setInterval(() => {
+                state.timer++;
+                const m = Math.floor(state.timer / 60).toString().padStart(2, '0');
+                const s = (state.timer % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 1000);
         }
 
         function renderQuestion() {
             const q = QUESTIONS[state.index];
-            document.getElementById('q-category').innerHTML = q.cat;
-            document.getElementById('q-text').innerHTML = q.q;
-            document.getElementById('current-q').innerHTML = state.index + 1;
-            document.getElementById('q-image-box').classList.add('hidden');
+            document.getElementById('q-category').innerText = q.cat;
+            document.getElementById('q-text').innerText = q.q;
+            document.getElementById('current-q').innerText = state.index + 1;
+            
+            const imgBox = document.getElementById('q-image-box');
+            if(q.img) {
+                document.getElementById('q-image').src = q.img;
+                imgBox.classList.remove('hidden');
+            } else {
+                imgBox.classList.add('hidden');
+            }
+
             const grid = document.getElementById('options-grid');
             grid.innerHTML = '';
             q.opts.forEach((opt, i) => {
                 const btn = document.createElement('button');
-                btn.className = "option-btn p-6 rounded-2xl text-right text-lg font-bold w-full text-right flex items-center gap-3";
-                btn.innerHTML = `<span class="w-7 h-7 rounded-full bg-slate-700 inline-flex items-center justify-center text-sm font-bold">${String.fromCharCode(65+i)}</span> ${opt}`;
+                btn.className = "option-btn p-6 rounded-2xl text-right text-lg font-bold";
+                btn.innerText = opt;
                 btn.onclick = () => selectAnswer(i, btn);
                 grid.appendChild(btn);
             });
+
             const progress = ((state.index + 1) / QUESTIONS.length) * 100;
             document.getElementById('progress-bar').style.width = `${progress}%`;
-            gsap.fromTo("#q-text", { x: -20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.4 });
-            gsap.fromTo(".option-btn", { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, stagger: 0.05, duration: 0.3 });
         }
 
         function selectAnswer(idx, btn) {
-            if (isAnswered || isWaitingForNext) return;
-            isAnswered = true;
-            isWaitingForNext = true;
-            if (questionTimerInterval) { clearInterval(questionTimerInterval); questionTimerInterval = null; }
             const q = QUESTIONS[state.index];
             const allBtns = document.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.disabled = true);
-            gsap.to("#game-card", { x: 3, duration: 0.05, repeat: 3, yoyo: true });
-            if (idx === q.ans) {
+            
+            // تأثير هز البطاقة
+            gsap.to("#game-card", { x: 5, duration: 0.05, yoyo: true, repeat: 3, ease: "power1.inOut" });
+
+            if(idx === q.ans) {
                 btn.classList.add('correct');
+                gsap.fromTo(btn, { scale: 1 }, { scale: 1.05, duration: 0.2, yoyo: true, repeat: 1 });
                 state.score += 10;
                 state.streak++;
                 Object.keys(q.weights).forEach(k => state.skills[k] += q.weights[k]);
-                const msg = CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
-                showFeedback(msg, true);
+                
+                const randomMsg = CORRECT_MESSAGES[Math.floor(Math.random() * CORRECT_MESSAGES.length)];
+                showFeedback(randomMsg, true);
                 playSuccessSound();
-                canvasConfetti({ particleCount: 120, spread: 70, origin: { y: 0.7 }, colors: ['#10b981', '#3b82f6'] });
-                if (state.streak >= 3) { showStreak(); canvasConfetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, startVelocity: 25 }); }
+                
+                if(state.streak >= 3) {
+                    showStreak();
+                    confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#3b82f6', '#f59e0b'] });
+                }
             } else {
                 btn.classList.add('wrong');
-                if (allBtns[q.ans]) allBtns[q.ans].classList.add('correct');
+                gsap.fromTo(btn, { x: 0 }, { x: 10, duration: 0.05, repeat: 5, yoyo: true });
+                allBtns[q.ans].classList.add('correct');
                 state.streak = 0;
                 hideStreak();
-                const msg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
-                showFeedback(msg, false);
+                
+                const randomMsg = WRONG_MESSAGES[Math.floor(Math.random() * WRONG_MESSAGES.length)];
+                showFeedback(randomMsg, false);
                 playWrongSound();
-                document.body.classList.add('shake-screen');
-                setTimeout(() => document.body.classList.remove('shake-screen'), 400);
             }
+
             document.getElementById('live-score').innerText = state.score;
+
             setTimeout(() => {
                 state.index++;
-                isWaitingForNext = false;
-                if (state.index < QUESTIONS.length) {
-                    resetQuestionTimer();
+                if(state.index < QUESTIONS.length) {
                     renderQuestion();
-                } else finishGame();
+                } else {
+                    finishGame();
+                }
             }, 1800);
+        }
+
+        function showStreak() {
+            const container = document.getElementById('streak-container');
+            container.classList.remove('hidden');
+            document.getElementById('streak-count').innerText = state.streak;
+            gsap.fromTo(container, { scale: 0.5, rotation: -10 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out" });
+        }
+
+        function hideStreak() {
+            document.getElementById('streak-container').classList.add('hidden');
         }
 
         function finishGame() {
             clearInterval(state.interval);
-            if (questionTimerInterval) clearInterval(questionTimerInterval);
             document.getElementById('screen-play').classList.add('hidden');
             document.getElementById('screen-results').classList.remove('hidden');
-            gsap.fromTo("#screen-results", { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out" });
+            gsap.fromTo("#screen-results", { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out" });
+
             const maxScore = QUESTIONS.length * 10;
             const finalPercent = Math.round((state.score / maxScore) * 100);
             document.getElementById('final-score').innerText = `${finalPercent}%`;
-            let level = "مبتدئ 🌱", rec = "لديك معرفة أساسية، ننصحك بالتدرب على برامج الأوفيس والأمن الرقمي.", strength = "بداية موفقة، استمر في التعلم!";
-            if (finalPercent >= 90) { level = "خبير تقني 🧙‍♂️"; rec = "أداء استثنائي! أنت مؤهل لقيادة مشاريع رقمية."; strength = "ممتاز في جميع المجالات!"; canvasConfetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } }); }
-            else if (finalPercent >= 75) { level = "متقدم 🚀"; rec = "أداء رائع! ركز على الأمن السيبراني أكثر."; strength = "مايكروسوفت والذكاء الاصطناعي قويان جداً."; }
-            else if (finalPercent >= 60) { level = "متوسط 💪"; rec = "أساسيات جيدة، تدرب على Excel وأدوات الذكاء الاصطناعي."; strength = "فهم جيد للمبادئ الأساسية."; }
-            else if (finalPercent >= 40) { level = "ناشئ 🌟"; rec = "خصص وقتاً يومياً لتعلم التقنية والأمن الرقمي."; strength = "لديك إمكانيات كبيرة، استمر بالممارسة!"; }
+
+            let level = "مبتدئ 🌱";
+            let rec = "لديك معرفة أساسية جيدة! ننصحك بالتدرب أكثر على استخدام برامج الأوفيس والوعي الأمني.";
+            let strength = "تواصل التعلم وستصبح خبيراً قريباً!";
+
+            if(finalPercent >= 90) {
+                level = "خبير تقني 🧙‍♂️";
+                rec = "أداء استثنائي! أنت مستعد لقيادة المشاريع الرقمية في مدرستك وتعليم زملائك.";
+                strength = "مهاراتك في جميع المجالات ممتازة! استمر في تطوير نفسك.";
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if(finalPercent >= 75) {
+                level = "متقدم 🚀";
+                rec = "أداء رائع! لديك أساسيات قوية في معظم المجالات. ركز أكثر على الأمن السيبراني.";
+                strength = "مهاراتك في Microsoft Office والذكاء الاصطناعي قوية جداً!";
+            } else if(finalPercent >= 60) {
+                level = "متوسط 💪";
+                rec = "لديك أساسيات جيدة. ننصحك بالتدرب أكثر على Excel وأدوات الذكاء الاصطناعي.";
+                strength = "فهمك للأمور الأساسية جيد، واصل التحسين!";
+            } else if(finalPercent >= 40) {
+                level = "ناشئ 🌟";
+                rec = "بداية جيدة! خصص وقتاً يومياً للتعلم عن التقنية والأمن الرقمي.";
+                strength = "لديك إمكانيات كبيرة، فقط تحتاج المزيد من الممارسة!";
+            }
+            
             document.getElementById('final-level').innerText = level;
             document.getElementById('recommendation-text').innerText = rec;
             document.getElementById('strength-text').innerText = strength;
+
+            renderFinalChart();
+            sendData(finalPercent, level);
+        }
+
+        function renderFinalChart() {
             const ctx = document.getElementById('skillsChart').getContext('2d');
             new Chart(ctx, {
                 type: 'radar',
-                data: { labels: ['مايكروسوفت', 'الذكاء الاصطناعي', 'الأمن السيبراني', 'الثقافة الرقمية'],
-                datasets: [{ label: 'مستوى المهارة', data: [state.skills.ms, state.skills.ai, state.skills.sec, state.skills.lit], backgroundColor: 'rgba(59,130,246,0.3)', borderColor: '#3b82f6', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#3b82f6', pointRadius: 5 }] },
-                options: { scales: { r: { beginAtZero: true, grid: { color: '#334155' }, pointLabels: { color: '#cbd5e6', font: { size: 12 } }, ticks: { display: false } } }, plugins: { legend: { labels: { color: '#fff' } } } }
+                data: {
+                    labels: ['مايكروسوفت أوفيس', 'الذكاء الاصطناعي', 'الأمن السيبراني', 'الثقافة الرقمية'],
+                    datasets: [{
+                        label: 'خريطة المهارات',
+                        data: [state.skills.ms, state.skills.ai, state.skills.sec, state.skills.lit],
+                        backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { 
+                                color: '#94a3b8', 
+                                font: { family: 'Cairo', size: 13, weight: 'bold' } 
+                            },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
             });
-            const params = new URLSearchParams();
-            params.append('name', state.userId); params.append('school', state.school); params.append('age', '12-14');
-            params.append('gender', 'Not Specified'); params.append('microsoft', state.skills.ms); params.append('ai', state.skills.ai);
-            params.append('security', state.skills.sec); params.append('literacy', state.skills.lit);
-            params.append('totalScore', finalPercent); params.append('level', level); params.append('timeSpent', state.timer);
-            fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: params }).catch(e => console.error(e));
         }
 
-        function shareResult() {
-            const percent = document.getElementById('final-score').innerText;
-            const level = document.getElementById('final-level').innerText;
-            const text = `🎉 أنا البطل ${state.userId} حصلت على نسبة ${percent} في تحدي الأبطال الرقميين ومستواي ${level}! 🏆\n#تحدي_الأبطال_الرقميين`;
-            if (navigator.share) navigator.share({ title: 'نتيجتي في التحدي', text: text });
-            else alert(text);
+        async function sendData(score, level) {
+            // إرسال البيانات إلى رابط Google Apps Script الجديد
+            const params = new URLSearchParams();
+            params.append('name', state.userId);
+            params.append('school', state.school);
+            params.append('age', '12-14');
+            params.append('gender', 'Not Specified');
+            params.append('microsoft', state.skills.ms);
+            params.append('ai', state.skills.ai);
+            params.append('security', state.skills.sec);
+            params.append('literacy', state.skills.lit);
+            params.append('totalScore', score);
+            params.append('level', level);
+            params.append('timeSpent', state.timer);
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',  // يسمح بالإرسال حتى لو لم نستطع قراءة الرد
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: params.toString()
+                });
+                console.log("✅ تم إرسال البيانات إلى Google Sheet بنجاح (وضع no-cors)");
+            } catch (error) {
+                console.error("❌ فشل إرسال البيانات:", error);
+            }
         }
     </script>
 </body>
