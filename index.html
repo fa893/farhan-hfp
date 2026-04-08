@@ -56,7 +56,7 @@
 </div>
 
 <script>
-    // قائمة المستخدمين وكلمات المرور التي زودتني بها
+    // قائمة المستخدمين وكلمات المرور
     const users = {
         "Alryan Alhrezat": "Hfp5",
         "Bishre Mahasneh": "Hfp5",
@@ -70,12 +70,11 @@
 
     function checkAccess() {
         const username = prompt("الرجاء إدخال اسم المستخدم:");
-        if (username === null) return; // إذا ضغط إلغاء
+        if (username === null) return;
 
         if (users[username]) {
             const password = prompt("الرجاء إدخال كلمة المرور:");
             if (password === users[username]) {
-                // إذا كانت البيانات صحيحة، يتوجه لرابط لوحة البيانات
                 window.location.href = "hfpdata.html";
             } else {
                 alert("كلمة المرور غير صحيحة!");
